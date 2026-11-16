@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StarLife - Teste de Avatares</title>
+  <style>
+    :root {
+      --bg-color: #152238;
+      --panel-bg: #1e3150;
+      --panel-light: #2b446e;
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --accent-color: #3b82f6;
+      --border-color: #334e7b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #0e1726;
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 6px;
+      color: #60a5fa;
+    }
+
+    p.subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background-color: var(--panel-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .avatar-preview-box {
+      width: 130px;
+      height: 130px;
+      margin: 0 auto 14px auto;
+      border-radius: 50%;
+      border: 3px solid var(--accent-color);
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+      background-color: #111c30;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .input-group select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+
+    .color-swatches {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-start;
+      margin-top: 4px;
+    }
+
+    .swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      padding: 0;
+      border: 2px solid transparent;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      transition: transform 0.1s;
+    }
+
+    .swatch.active {
+      border-color: #ffffff;
+      transform: scale(1.15);
+    }
+
+    .grid-examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .example-card {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .example-avatar {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 6px auto;
+      border-radius: 50%;
+      border: 2px solid var(--accent-color);
+      overflow: hidden;
+    }
+
+    .example-card span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>⭐ StarLife - Teste de Avatar</h1>
+    <p class="subtitle">Laboratório isolado para afinar o estilo gráfico e opções do avatar.</p>
+
+    <!-- Painel de Personalização Interativo -->
+    <div class="panel">
+      <h3>🎨 Simulador de Personalização</h3>
+      <div id="avatarPreviewContainer" class="avatar-preview-box"></div>
+      
+      <div class="input-group">
+        <label>Tom de Pele</label>
+        <div class="color-swatches" id="skinSwatches">
+          <button type="button" class="swatch active" data-skin="#fde0c3" style="background:#fde0c3;"></button>
+          <button type="button" class="swatch" data-skin="#f1c27d" style="background:#f1c27d;"></button>
+          <button type="button" class="swatch" data-skin="#e0ac69" style="background:#e0ac69;"></button>
+          <button type="button" class="swatch" data-skin="#8d5524" style="background:#8d5524;"></button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Estilo de Cabelo</label>
+        <select id="avatarHairStyle">
+          <option value="spiky">Cabelo Espigado</option>
+          <option value="short">Curto Clássico</option>
+          <option value="curly">Caracóis Volumosos</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Cor do Cabelo</label>
+        <div class="color-swatches" id="hairSwatches">
+          <button type="button" class="swatch active" data-hair="#d97706" style="background:#d97706;"></button>
+          <button type="button" class="swatch" data-hair="#1f1a17" style="background:#1f1a17;"></button>
+          <button type="button" class="swatch" data-hair="#5c3824" style="background:#5c3824;"></button>
+          <button type="button" class="swatch" data-hair="#2563eb" style="background:#2563eb;"></button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Barba / Pêlo Facial</label>
+        <select id="avatarBeard">
+          <option value="none">Sem barba</option>
+          <option value="goatee">Pêlo / Pera</option>
+          <option value="full">Barba Completa</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Óculos</label>
+        <select id="avatarGlasses">
+          <option value="none">Sem óculos</option>
+          <option value="round">Óculos Redondos</option>
+          <option value="sunglasses">Óculos de Sol</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Exemplos Pré-definidos Lado a Lado -->
+    <div class="panel">
+      <h3>📋 Exemplos de Combinações Rápidas</h3>
+      <div class="grid-examples" id="examplesGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentAvatar = {
+      skin: "#fde0c3",
+      hairStyle: "spiky",
+      hairColor: "#d97706",
+      eyeColor: "#2563eb",
+      beard: "goatee",
+      glasses: "none"
+    };
+
+    function generateAvatarSVG(av) {
+      let hairHTML = "";
+      if (av.hairStyle === "spiky") {
+        hairHTML = `
+          <path d="M 26 32 C 22 14, 36 4, 50 10 C 64 4, 78 14, 74 32 C 82 28, 88 38, 78 46 C 70 36, 62 38, 50 38 C 38 38, 30 36, 22 46 C 12 38, 18 28, 26 32 Z" fill="${av.hairColor}" />
+          <path d="M 34 22 Q 50 8, 66 22 Q 50 28, 34 22 Z" fill="rgba(255,255,255,0.4)" />
+        `;
+      } else if (av.hairStyle === "short") {
+        hairHTML = `<path d="M 26 34 C 24 14, 76 14, 74 34 C 70 20, 30 20, 26 34 Z" fill="${av.hairColor}" />`;
+      } else if (av.hairStyle === "curly") {
+        hairHTML = `
+          <circle cx="33" cy="24" r="11" fill="${av.hairColor}" />
+          <circle cx="44" cy="16" r="13" fill="${av.hairColor}" />
+          <circle cx="56" cy="16" r="13" fill="${av.hairColor}" />
+          <circle cx="67" cy="24" r="11" fill="${av.hairColor}" />
+        `;
+      }
+
+      let beardHTML = "";
+      if (av.beard === "goatee") {
+        beardHTML = `
+          <path d="M 43 57 Q 50 53 57 57 Q 54 68, 50 72 Q 46 68, 43 57 Z" fill="#7c2d12" />
+          <path d="M 40 58 Q 50 54 60 58 Q 50 60, 40 58 Z" fill="#7c2d12" />
+        `;
+      } else if (av.beard === "full") {
+        beardHTML = `<path d="M 28 44 C 28 75, 72 75, 72 44 C 66 64, 34 64, 28 44 Z" fill="${av.hairColor}" />`;
+      }
+
+      let glassesHTML = "";
+      if (av.glasses === "round") {
+        glassesHTML = `
+          <circle cx="39" cy="43" r="7.5" stroke="#0f172a" stroke-width="2.2" fill="rgba(255,255,255,0.2)" />
+          <circle cx="61" cy="43" r="7.5" stroke="#0f172a" stroke-width="2.2" fill="rgba(255,255,255,0.2)" />
+          <line x1="46.5" y1="43" x2="53.5" y2="43" stroke="#0f172a" stroke-width="2.2" />
+        `;
+      } else if (av.glasses === "sunglasses") {
+        glassesHTML = `
+          <rect x="31" y="38" width="16" height="11" rx="2.5" fill="#0f172a" />
+          <rect x="53" y="38" width="16" height="11" rx="2.5" fill="#0f172a" />
+          <line x1="47" y1="43" x2="53" y2="43" stroke="#0f172a" stroke-width="2.5" />
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;">
+          <defs>
+            <radialGradient id="skinGrad" cx="50%" cy="32%" r="62%">
+              <stop offset="0%" stop-color="${av.skin}" />
+              <stop offset="70%" stop-color="${av.skin}" />
+              <stop offset="100%" stop-color="#854d0e" stop-opacity="0.4" />
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="48" fill="#131e33" />
+          <rect x="42" y="66" width="16" height="22" fill="url(#skinGrad)" />
+          <path d="M 22 96 C 24 76, 76 76, 78 96 Z" fill="#2563eb" />
+          <circle cx="27" cy="44" r="5.5" fill="url(#skinGrad)" />
+          <circle cx="73" cy="44" r="5.5" fill="url(#skinGrad)" />
+          <rect x="29" y="23" width="42" height="47" rx="19" fill="url(#skinGrad)" />
+          <path d="M 33 36 Q 39 32, 45 36" stroke="${av.hairColor}" stroke-width="3" stroke-linecap="round" fill="none" />
+          <path d="M 55 36 Q 61 32, 67 36" stroke="${av.hairColor}" stroke-width="3" stroke-linecap="round" fill="none" />
+          <ellipse cx="39" cy="43" rx="4" ry="4.5" fill="#ffffff" />
+          <circle cx="39" cy="43" r="2.5" fill="${av.eyeColor}" />
+          <ellipse cx="61" cy="43" rx="4" ry="4.5" fill="#ffffff" />
+          <circle cx="61" cy="43" r="2.5" fill="${av.eyeColor}" />
+          <path d="M 50 43 L 47.5 51 L 52.5 51" stroke="rgba(0,0,0,0.2)" stroke-width="1.8" fill="none" stroke-linecap="round" />
+          <path d="M 41 62 Q 50 71 59 62" stroke="#7f1d1d" stroke-width="2.8" fill="none" stroke-linecap="round" />
+          ${beardHTML}
+          ${glassesHTML}
+          ${hairHTML}
+        </svg>
+      `;
+    }
+
+    function updatePreview() {
+      document.getElementById("avatarPreviewContainer").innerHTML = generateAvatarSVG(currentAvatar);
+    }
+
+    // Eventos dos controlos
+    document.querySelectorAll("#skinSwatches .swatch").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll("#skinSwatches .swatch").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentAvatar.skin = btn.dataset.skin;
+        updatePreview();
+      };
+    });
+
+    document.querySelectorAll("#hairSwatches .swatch").forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll("#hairSwatches .swatch").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentAvatar.hairColor = btn.dataset.hair;
+        updatePreview();
+      };
+    });
+
+    document.getElementById("avatarHairStyle").onchange = (e) => {
+      currentAvatar.hairStyle = e.target.value;
+      updatePreview();
+    };
+
+    document.getElementById("avatarBeard").onchange = (e) => {
+      currentAvatar.beard = e.target.value;
+      updatePreview();
+    };
+
+    document.getElementById("avatarGlasses").onchange = (e) => {
+      currentAvatar.glasses = e.target.value;
+      updatePreview();
+    };
+
+    // Exemplos rápidos
+    const samples = [
+      { name: "Clássico Pera", skin: "#fde0c3", hairStyle: "spiky", hairColor: "#d97706", eyeColor: "#2563eb", beard: "goatee", glasses: "none" },
+      { name: "Curto & Óculos", skin: "#f1c27d", hairStyle: "short", hairColor: "#1f1a17", eyeColor: "#16a34a", beard: "none", glasses: "round" },
+      { name: "Caracóis Barba", skin: "#e0ac69", hairStyle: "curly", hairColor: "#5c3824", eyeColor: "#4a3121", beard: "full", glasses: "none" },
+      { name: "Estilo Sol", skin: "#8d5524", hairStyle: "spiky", hairColor: "#2563eb", eyeColor: "#b45309", beard: "none", glasses: "sunglasses" }
+    ];
+
+    const grid = document.getElementById("examplesGrid");
+    samples.forEach(s => {
+      grid.innerHTML += `
+        <div class="example-card">
+          <div class="example-avatar">${generateAvatarSVG(s)}</div>
+          <span>${s.name}</span>
+        </div>
+      `;
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>
