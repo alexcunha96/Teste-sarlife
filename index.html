@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Teste Avatar 3D Profissional</title>
+  <title>StarLife - Teste Avatar 3D Pro</title>
   <style>
     :root {
       --bg-color: #152238;
@@ -30,6 +30,9 @@
       overflow: hidden;
       background-color: #111c30;
       box-shadow: 0 8px 22px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .avatar-preview-box img {
       width: 100%;
@@ -49,26 +52,25 @@
 
   <div class="container">
     <h1>⭐ StarLife - Avatares 3D Pro</h1>
-    <p class="subtitle">Teste com componentes visuais de alta qualidade.</p>
+    <p class="subtitle">Teste corrigido com componentes visuais.</p>
 
     <div class="panel">
       <h3>🎨 Personalização</h3>
       
-      <!-- Caixa onde aparece o Avatar gerado dinamicamente -->
-      <div id="avatarPreviewContainer" class="avatar-preview-box"></div>
+      <div id="avatarPreviewContainer" class="avatar-preview-box">Carregando...</div>
       
       <div class="input-group">
-        <label>Nome do Personagem (semente para o avatar)</label>
+        <label>Nome do Personagem (semente)</label>
         <input type="text" id="seedInput" value="João Silva" placeholder="Escreve um nome...">
       </div>
 
       <div class="input-group">
         <label>Estilo de Cabelo / Topo</label>
         <select id="hairStyle">
-          <option value="shortFlat">Curto Moderno</option>
-          <option value="caesar">Espigado / Texturizado</option>
-          <option value="dreads01">Dreads / Volume</option>
+          <option value="short">Curto Simples</option>
+          <option value="long">Comprido</option>
           <option value="curly">Caracóis</option>
+          <option value="bun">Apanhado / Coque</option>
           <option value="bald">Careca</option>
         </select>
       </div>
@@ -77,8 +79,8 @@
         <label>Pêlo Facial (Barba)</label>
         <select id="facialHair">
           <option value="none">Sem barba</option>
-          <option value="beardMedium">Barba Média</option>
-          <option value="goatee">Pera / Goatee</option>
+          <option value="beardLight">Barba Leve</option>
+          <option value="moustache">Bigode</option>
         </select>
       </div>
 
@@ -86,7 +88,7 @@
         <label>Acessório / Óculos</label>
         <select id="accessories">
           <option value="none">Nenhum</option>
-          <option value="prescription01">Óculos Graduados</option>
+          <option value="eyewear">Óculos</option>
           <option value="sunglasses">Óculos de Sol</option>
         </select>
       </div>
@@ -95,15 +97,20 @@
 
   <script>
     function updateAvatar() {
-      const seed = document.getElementById("seedInput").value || "Starlife";
+      const seed = document.getElementById("seedInput").value.trim() || "Starlife";
       const hair = document.getElementById("hairStyle").value;
       const facialHair = document.getElementById("facialHair").value;
       const accessories = document.getElementById("accessories").value;
 
-      // Usamos a API do DiceBear (Estilo 'avataaars' ou 'micah') para gerar um avatar vetorial rico e detalhado
-      const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}&top=${hair}&facialHair=${facialHair}&accessories=${accessories}&backgroundColor=111c30`;
+      // Usar parâmetros válidos e diretos da API DiceBear Avataaars
+      let url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundColor=111c30`;
+      
+      if (hair !== "none") url += `&top=${hair}`;
+      if (facialHair !== "none") url += `&facialHair=${facialHair}`;
+      if (accessories !== "none") url += `&accessories=${accessories}`;
 
-      document.getElementById("avatarPreviewContainer").innerHTML = `<img src="${url}" alt="Avatar">`;
+      const container = document.getElementById("avatarPreviewContainer");
+      container.innerHTML = `<img src="${url}" alt="Avatar" onerror="this.onerror=null; this.parentNode.innerHTML='Erro ao carregar';">`;
     }
 
     document.getElementById("seedInput").addEventListener("input", updateAvatar);
@@ -111,7 +118,6 @@
     document.getElementById("facialHair").addEventListener("change", updateAvatar);
     document.getElementById("accessories").addEventListener("change", updateAvatar);
 
-    // Gerar ao iniciar
     updateAvatar();
   </script>
 </body>
