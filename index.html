@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Next-Gen Avatar Engine</title>
+  <title>StarLife - Avatar Engine</title>
   <style>
     :root {
       --bg-color: #0b132b;
@@ -19,7 +19,7 @@
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     .container { width: 100%; max-width: 480px; }
     
-    h1 { text-align: center; margin-bottom: 4px; color: var(--accent); font-size: 1.5rem; letter-spacing: 0.5px; }
+    h1 { text-align: center; margin-bottom: 4px; color: var(--accent); font-size: 1.5rem; }
     p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
 
     .panel {
@@ -39,17 +39,23 @@
       border: 3px solid var(--accent);
       box-shadow: 0 0 20px var(--accent-glow);
       overflow: hidden;
-      background: linear-gradient(135deg, #111e38, #0b132b);
+      background: #111c33;
+    }
+
+    /* Garantir que o SVG ocupa exatamente o espaço do círculo */
+    .avatar-showcase svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .control-group { margin-bottom: 12px; }
-    .control-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+    .control-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
     
-    select, input[type="range"] {
+    select {
       width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border);
       background-color: var(--bg-color); color: var(--text-main); font-size: 0.95rem; outline: none;
     }
-    select:focus { border-color: var(--accent); }
 
     .swatches { display: flex; gap: 8px; margin-top: 4px; }
     .swatch {
@@ -63,7 +69,7 @@
 
   <div class="container">
     <h1>⭐ StarLife</h1>
-    <p class="subtitle">Motor de Avatar Next-Gen (Original & Exclusivo)</p>
+    <p class="subtitle">Motor de Avatar Original</p>
 
     <div class="panel">
       <!-- Onde o avatar de alta definição é renderizado -->
@@ -82,10 +88,9 @@
       <div class="control-group">
         <label>Estilo de Cabelo</label>
         <select id="hairStyleSelect">
-          <option value="modernFade">Fade Moderno / Topete</option>
+          <option value="modernFade">Fade Moderno</option>
           <option value="curlyVolume">Caracóis com Volume</option>
           <option value="slickShort">Curto Executivo</option>
-          <option value="bald">Careca / Limpo</option>
         </select>
       </div>
 
@@ -102,9 +107,9 @@
       <div class="control-group">
         <label>Expressão / Humor</label>
         <select id="moodSelect">
-          <option value="confident">Confiante / Neutro</option>
-          <option value="happy">Contente / Sorriso</option>
-          <option value="stressed">Pensativo / Sério</option>
+          <option value="confident">Confiante</option>
+          <option value="happy">Contente</option>
+          <option value="stressed">Sério</option>
         </select>
       </div>
     </div>
@@ -119,26 +124,18 @@
     };
 
     function renderAvatar() {
-      // Gerador de elementos baseado nas opções do estado
       let hairHTML = "";
       if (state.hairStyle === "modernFade") {
-        hairHTML = `
-          <path d="M 28 34 C 24 14, 38 4, 50 8 C 62 4, 76 14, 72 34 C 80 30, 86 40, 75 46 C 68 38, 60 40, 50 40 C 40 40, 32 38, 25 46 C 14 40, 20 30, 28 34 Z" fill="${state.hairColor}" />
-          <path d="M 35 22 Q 50 10, 65 22" stroke="rgba(255,255,255,0.25)" stroke-width="4" stroke-linecap="round" fill="none" />
-        `;
+        hairHTML = `<path d="M 28 34 C 24 14, 38 4, 50 8 C 62 4, 76 14, 72 34 C 80 30, 86 40, 75 46 C 68 38, 60 40, 50 40 C 40 40, 32 38, 25 46 C 14 40, 20 30, 28 34 Z" fill="${state.hairColor}" />`;
       } else if (state.hairStyle === "curlyVolume") {
         hairHTML = `
           <circle cx="32" cy="26" r="12" fill="${state.hairColor}" />
           <circle cx="44" cy="17" r="14" fill="${state.hairColor}" />
           <circle cx="56" cy="17" r="14" fill="${state.hairColor}" />
           <circle cx="68" cy="26" r="12" fill="${state.hairColor}" />
-          <circle cx="26" cy="38" r="10" fill="${state.hairColor}" />
-          <circle cx="74" cy="38" r="10" fill="${state.hairColor}" />
         `;
       } else if (state.hairStyle === "slickShort") {
-        hairHTML = `
-          <path d="M 27 34 C 26 18, 74 18, 73 34 C 68 24, 32 24, 27 34 Z" fill="${state.hairColor}" />
-        `;
+        hairHTML = `<path d="M 27 34 C 26 18, 74 18, 73 34 C 68 24, 32 24, 27 34 Z" fill="${state.hairColor}" />`;
       }
 
       let mouthHTML = "";
@@ -151,7 +148,7 @@
       }
 
       const svg = `
-        <svg viewBox="0 0 100 100" style="width:100%; height:100%; display:block;">
+        <svg viewBox="0 0 100 100">
           <defs>
             <radialGradient id="skinGrad" cx="50%" cy="30%" r="65%">
               <stop offset="0%" stop-color="${state.skin}" />
@@ -163,52 +160,64 @@
               <stop offset="100%" stop-color="#1e3a8a" />
             </linearGradient>
           </defs>
-
-          <!-- Fundo subtil -->
           <circle cx="50" cy="50" r="48" fill="#111c33" />
-
-          <!-- Ombros / Roupa -->
           <path d="M 20 96 C 22 74, 78 74, 80 96 Z" fill="url(#shirtGrad)" />
           <path d="M 42 74 L 50 84 L 58 74 Z" fill="#ffffff" opacity="0.9" />
-
-          <!-- Pescoço -->
           <rect x="42" y="62" width="16" height="20" fill="url(#skinGrad)" />
-
-          <!-- Orelhas -->
           <circle cx="27" cy="45" r="5.5" fill="url(#skinGrad)" />
           <circle cx="73" cy="45" r="5.5" fill="url(#skinGrad)" />
-
-          <!-- Cabeça / Rosto Principal -->
           <rect x="28" y="22" width="44" height="48" rx="20" fill="url(#skinGrad)" />
-
-          <!-- Olhos de alta definição com brilho -->
-          <g>
-            <ellipse cx="38" cy="44" rx="4.5" ry="5" fill="#ffffff" />
-            <circle cx="38" cy="44" r="2.8" fill="#1e293b" />
-            <circle cx="36.5" cy="42.5" r="1" fill="#ffffff" />
-
-            <ellipse cx="62" cy="44" rx="4.5" ry="5" fill="#ffffff" />
-            <circle cx="62" cy="44" r="2.8" fill="#1e293b" />
-            <circle cx="60.5" cy="42.5" r="1" fill="#ffffff" />
-          </g>
-
-          <!-- Sobrancelhas dinâmicas -->
+          <ellipse cx="38" cy="44" rx="4.5" ry="5" fill="#ffffff" />
+          <circle cx="38" cy="44" r="2.8" fill="#1e293b" />
+          <circle cx="36.5" cy="42.5" r="1" fill="#ffffff" />
+          <ellipse cx="62" cy="44" rx="4.5" ry="5" fill="#ffffff" />
+          <circle cx="62" cy="44" r="2.8" fill="#1e293b" />
+          <circle cx="60.5" cy="42.5" r="1" fill="#ffffff" />
           <path d="M 33 36 Q 38 33, 43 36" stroke="${state.hairColor}" stroke-width="2.5" stroke-linecap="round" fill="none" />
           <path d="M 57 36 Q 62 33, 67 36" stroke="${state.hairColor}" stroke-width="2.5" stroke-linecap="round" fill="none" />
-
-          <!-- Nariz subtil -->
           <path d="M 50 43 L 47.5 52 L 52.5 52" stroke="rgba(0,0,0,0.18)" stroke-width="2" fill="none" stroke-linecap="round" />
-
-          <!-- Boca / Expressão -->
           ${mouthHTML}
-
-          <!-- Cabelo dinâmico -->
           ${hairHTML}
         </svg>
       `;
 
-      document.getElementById("avatarContainer").innerHTML = svg;
+      const container = document.getElementById("avatarContainer");
+      if (container) {
+        container.innerHTML = svg;
+      }
     }
 
-    // Eventos de controlo da interface
-    document.querySelectorAll("#skinSwatches .sw
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("#skinSwatches .swatch").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll("#skinSwatches .swatch").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.skin = btn.dataset.color;
+          renderAvatar();
+        };
+      });
+
+      document.querySelectorAll("#hairSwatches .swatch").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll("#hairSwatches .swatch").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.hairColor = btn.dataset.color;
+          renderAvatar();
+        };
+      });
+
+      document.getElementById("hairStyleSelect").onchange = (e) => {
+        state.hairStyle = e.target.value;
+        renderAvatar();
+      };
+
+      document.getElementById("moodSelect").onchange = (e) => {
+        state.mood = e.target.value;
+        renderAvatar();
+      };
+
+      renderAvatar();
+    });
+  </script>
+</body>
+</html>
