@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Avatar Engine</title>
+  <title>StarLife - Professional Avatar Studio</title>
   <style>
     :root {
       --bg-color: #0b132b;
@@ -39,10 +39,9 @@
       border: 3px solid var(--accent);
       box-shadow: 0 0 20px var(--accent-glow);
       overflow: hidden;
-      background: #111c33;
+      background: #0d1b2a;
     }
 
-    /* Garantir que o SVG ocupa exatamente o espaço do círculo */
     .avatar-showcase svg {
       width: 100%;
       height: 100%;
@@ -69,10 +68,9 @@
 
   <div class="container">
     <h1>⭐ StarLife</h1>
-    <p class="subtitle">Motor de Avatar Original</p>
+    <p class="subtitle">Estúdio de Avatar Profissional</p>
 
     <div class="panel">
-      <!-- Onde o avatar de alta definição é renderizado -->
       <div id="avatarContainer" class="avatar-showcase"></div>
 
       <div class="control-group">
@@ -81,23 +79,23 @@
           <button class="swatch active" data-color="#ffdec4" style="background: #ffdec4;"></button>
           <button class="swatch" data-color="#e0ac69" style="background: #e0ac69;"></button>
           <button class="swatch" data-color="#b07d5b" style="background: #b07d5b;"></button>
-          <button class="swatch" data-color="#6b4423" style="background: #6b4423;"></button>
+          <button class="swatch" data-color="#5a3825" style="background: #5a3825;"></button>
         </div>
       </div>
 
       <div class="control-group">
         <label>Estilo de Cabelo</label>
         <select id="hairStyleSelect">
-          <option value="modernFade">Fade Moderno</option>
-          <option value="curlyVolume">Caracóis com Volume</option>
-          <option value="slickShort">Curto Executivo</option>
+          <option value="texturedCrop">Texturizado Moderno</option>
+          <option value="messyWaves">Ondulado / Estilo Livre</option>
+          <option value="classicSlick">Executivo Elegante</option>
         </select>
       </div>
 
       <div class="control-group">
         <label>Cor do Cabelo</label>
         <div class="swatches" id="hairSwatches">
-          <button class="swatch active" data-color="#1e1b18" style="background: #1e1b18;"></button>
+          <button class="swatch active" data-color="#1b1918" style="background: #1b1918;"></button>
           <button class="swatch" data-color="#b45309" style="background: #b45309;"></button>
           <button class="swatch" data-color="#d97706" style="background: #d97706;"></button>
           <button class="swatch" data-color="#9ca3af" style="background: #9ca3af;"></button>
@@ -105,11 +103,11 @@
       </div>
 
       <div class="control-group">
-        <label>Expressão / Humor</label>
+        <label>Expressão</label>
         <select id="moodSelect">
-          <option value="confident">Confiante</option>
-          <option value="happy">Contente</option>
-          <option value="stressed">Sério</option>
+          <option value="confident">Confiante / Ambicioso</option>
+          <option value="happy">Radiante / Satisfeito</option>
+          <option value="serious">Focado / Sério</option>
         </select>
       </div>
     </div>
@@ -118,65 +116,111 @@
   <script>
     const state = {
       skin: "#ffdec4",
-      hairStyle: "modernFade",
-      hairColor: "#1e1b18",
+      hairStyle: "texturedCrop",
+      hairColor: "#1b1918",
       mood: "confident"
     };
 
     function renderAvatar() {
+      // Camadas de cabelo profissionais de alta definição
       let hairHTML = "";
-      if (state.hairStyle === "modernFade") {
-        hairHTML = `<path d="M 28 34 C 24 14, 38 4, 50 8 C 62 4, 76 14, 72 34 C 80 30, 86 40, 75 46 C 68 38, 60 40, 50 40 C 40 40, 32 38, 25 46 C 14 40, 20 30, 28 34 Z" fill="${state.hairColor}" />`;
-      } else if (state.hairStyle === "curlyVolume") {
+      if (state.hairStyle === "texturedCrop") {
         hairHTML = `
-          <circle cx="32" cy="26" r="12" fill="${state.hairColor}" />
-          <circle cx="44" cy="17" r="14" fill="${state.hairColor}" />
-          <circle cx="56" cy="17" r="14" fill="${state.hairColor}" />
-          <circle cx="68" cy="26" r="12" fill="${state.hairColor}" />
+          <path d="M 24 35 C 20 12, 36 2, 50 6 C 64 2, 80 12, 76 35 C 84 30, 88 42, 76 48 C 68 38, 58 40, 50 40 C 42 40, 32 38, 24 48 C 12 42, 16 30, 24 35 Z" fill="${state.hairColor}" />
+          <path d="M 32 20 Q 50 8, 68 20" stroke="rgba(255,255,255,0.2)" stroke-width="3" stroke-linecap="round" fill="none" />
         `;
-      } else if (state.hairStyle === "slickShort") {
-        hairHTML = `<path d="M 27 34 C 26 18, 74 18, 73 34 C 68 24, 32 24, 27 34 Z" fill="${state.hairColor}" />`;
+      } else if (state.hairStyle === "messyWaves") {
+        hairHTML = `
+          <path d="M 22 38 C 18 16, 34 4, 50 8 C 66 4, 82 16, 78 38 C 86 32, 90 46, 76 50 C 66 38, 56 42, 50 42 C 44 42, 34 38, 24 50 C 10 46, 14 32, 22 38 Z" fill="${state.hairColor}" />
+          <circle cx="36" cy="14" r="8" fill="${state.hairColor}" />
+          <circle cx="50" cy="10" r="10" fill="${state.hairColor}" />
+          <circle cx="64" cy="14" r="8" fill="${state.hairColor}" />
+        `;
+      } else if (state.hairStyle === "classicSlick") {
+        hairHTML = `
+          <path d="M 26 36 C 24 16, 76 16, 74 36 C 70 24, 30 24, 26 36 Z" fill="${state.hairColor}" />
+          <path d="M 32 22 C 40 18, 60 18, 68 22" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round" fill="none" />
+        `;
       }
 
+      // Expressões faciais detalhadas
       let mouthHTML = "";
       if (state.mood === "confident") {
-        mouthHTML = `<path d="M 42 63 Q 50 67 58 63" stroke="#7f1d1d" stroke-width="3" stroke-linecap="round" fill="none" />`;
+        mouthHTML = `<path d="M 41 64 Q 50 68 59 64" stroke="#5a2e2e" stroke-width="3" stroke-linecap="round" fill="none" />`;
       } else if (state.mood === "happy") {
-        mouthHTML = `<path d="M 40 61 Q 50 71 60 61" stroke="#7f1d1d" stroke-width="3.2" stroke-linecap="round" fill="#fda4af" />`;
-      } else if (state.mood === "stressed") {
-        mouthHTML = `<line x1="42" y1="64" x2="58" y2="64" stroke="#7f1d1d" stroke-width="3" stroke-linecap="round" />`;
+        mouthHTML = `
+          <path d="M 39 62 Q 50 72 61 62" stroke="#5a2e2e" stroke-width="3" stroke-linecap="round" fill="#ff8fa3" />
+          <path d="M 41 62 Q 50 66 59 62" stroke="#5a2e2e" stroke-width="2" fill="none" />
+        `;
+      } else if (state.mood === "serious") {
+        mouthHTML = `<line x1="42" y1="65" x2="58" y2="65" stroke="#5a2e2e" stroke-width="3" stroke-linecap="round" />`;
       }
 
       const svg = `
         <svg viewBox="0 0 100 100">
           <defs>
-            <radialGradient id="skinGrad" cx="50%" cy="30%" r="65%">
+            <radialGradient id="proSkin" cx="50%" cy="30%" r="70%">
               <stop offset="0%" stop-color="${state.skin}" />
-              <stop offset="80%" stop-color="${state.skin}" />
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.3" />
+              <stop offset="75%" stop-color="${state.skin}" />
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.25" />
             </radialGradient>
-            <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#3b82f6" />
+            <linearGradient id="proShirt" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#2563eb" />
               <stop offset="100%" stop-color="#1e3a8a" />
             </linearGradient>
+            <radialGradient id="cheekGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ff758f" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#ff758f" stop-opacity="0" />
+            </radialGradient>
           </defs>
-          <circle cx="50" cy="50" r="48" fill="#111c33" />
-          <path d="M 20 96 C 22 74, 78 74, 80 96 Z" fill="url(#shirtGrad)" />
-          <path d="M 42 74 L 50 84 L 58 74 Z" fill="#ffffff" opacity="0.9" />
-          <rect x="42" y="62" width="16" height="20" fill="url(#skinGrad)" />
-          <circle cx="27" cy="45" r="5.5" fill="url(#skinGrad)" />
-          <circle cx="73" cy="45" r="5.5" fill="url(#skinGrad)" />
-          <rect x="28" y="22" width="44" height="48" rx="20" fill="url(#skinGrad)" />
-          <ellipse cx="38" cy="44" rx="4.5" ry="5" fill="#ffffff" />
-          <circle cx="38" cy="44" r="2.8" fill="#1e293b" />
-          <circle cx="36.5" cy="42.5" r="1" fill="#ffffff" />
-          <ellipse cx="62" cy="44" rx="4.5" ry="5" fill="#ffffff" />
-          <circle cx="62" cy="44" r="2.8" fill="#1e293b" />
-          <circle cx="60.5" cy="42.5" r="1" fill="#ffffff" />
-          <path d="M 33 36 Q 38 33, 43 36" stroke="${state.hairColor}" stroke-width="2.5" stroke-linecap="round" fill="none" />
-          <path d="M 57 36 Q 62 33, 67 36" stroke="${state.hairColor}" stroke-width="2.5" stroke-linecap="round" fill="none" />
-          <path d="M 50 43 L 47.5 52 L 52.5 52" stroke="rgba(0,0,0,0.18)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+          <!-- Fundo sofisticado -->
+          <circle cx="50" cy="50" r="48" fill="#0d1b2a" />
+          
+          <!-- Corpo / Roupa com gola em V profissional -->
+          <path d="M 18 96 C 20 72, 80 72, 82 96 Z" fill="url(#proShirt)" />
+          <path d="M 40 72 L 50 84 L 60 72 Z" fill="#ffffff" opacity="0.95" />
+          <path d="M 45 72 L 50 79 L 55 72 Z" fill="#1e3a8a" />
+
+          <!-- Pescoço com sombra tridimensional -->
+          <rect x="41" y="60" width="18" height="22" fill="url(#proSkin)" />
+
+          <!-- Orelhas estilizadas -->
+          <circle cx="26" cy="46" r="6" fill="url(#proSkin)" />
+          <circle cx="74" cy="46" r="6" fill="url(#proSkin)" />
+
+          <!-- Rosto principal (Proporção de Alta Qualidade) -->
+          <rect x="27" y="20" width="46" height="50" rx="22" fill="url(#proSkin)" />
+
+          <!-- Bochechas com rubor subtil (dá vida ao avatar) -->
+          <circle cx="35" cy="53" r="7" fill="url(#cheekGlow)" />
+          <circle cx="65" cy="53" r="7" fill="url(#cheekGlow)" />
+
+          <!-- Olhos Premium (Com brilho duplo tipo anime/jogo moderno) -->
+          <g>
+            <ellipse cx="37" cy="45" rx="5" ry="5.5" fill="#ffffff" />
+            <circle cx="37" cy="45" r="3.2" fill="#0f172a" />
+            <circle cx="35.5" cy="43.5" r="1.2" fill="#ffffff" />
+            <circle cx="38.5" cy="46.5" r="0.5" fill="#ffffff" />
+          </g>
+          <g>
+            <ellipse cx="63" cy="45" rx="5" ry="5.5" fill="#ffffff" />
+            <circle cx="63" cy="45" r="3.2" fill="#0f172a" />
+            <circle cx="61.5" cy="43.5" r="1.2" fill="#ffffff" />
+            <circle cx="64.5" cy="46.5" r="0.5" fill="#ffffff" />
+          </g>
+
+          <!-- Sobrancelhas expressivas -->
+          <path d="M 31 37 Q 37 33, 43 37" stroke="${state.hairColor}" stroke-width="2.8" stroke-linecap="round" fill="none" />
+          <path d="M 57 37 Q 63 33, 69 37" stroke="${state.hairColor}" stroke-width="2.8" stroke-linecap="round" fill="none" />
+
+          <!-- Nariz refinado -->
+          <path d="M 50 44 L 47 53 L 53 53" stroke="rgba(0,0,0,0.15)" stroke-width="2" fill="none" stroke-linecap="round" />
+
+          <!-- Boca -->
           ${mouthHTML}
+
+          <!-- Camada de Cabelo Principal -->
           ${hairHTML}
         </svg>
       `;
