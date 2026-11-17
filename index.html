@@ -18,7 +18,17 @@
       background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
     }
     
-    .avatar-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+    /* Força todas as camadas a ocuparem exatamente o mesmo espaço exato e centralizado */
+    .avatar-layer { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain; /* Mantém a proporção sem deformar */
+      pointer-events: none; 
+    }
+
     .gender-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: #07090e; padding: 4px; border-radius: 10px; }
     .gender-btn { padding: 9px; border: none; border-radius: 8px; background: transparent; color: #9ca3af; font-weight: bold; cursor: pointer; }
     .gender-btn.active { background: #38bdf8; color: #090d16; }
@@ -36,6 +46,7 @@
     <p class="subtitle">Criador de Personagens</p>
     <div class="panel">
       <div class="avatar-stage">
+        <!-- A ordem das camadas garante que o Rosto fica no fundo e os acessórios/cabelo por cima -->
         <img id="layerBase" class="avatar-layer" src="" alt="Rosto">
         <img id="layerEyes" class="avatar-layer" src="" alt="Olhos">
         <img id="layerHair" class="avatar-layer" src="" alt="Cabelo">
@@ -51,7 +62,6 @@
   </div>
 
   <script>
-    // Função auxiliar para gerar listas automaticamente (ex: "Rosto_masculino" de 1 até 8)
     function generateList(prefix, count, hasNone = false) {
       let list = hasNone ? ["none"] : [];
       for (let i = 1; i <= count; i++) {
@@ -65,14 +75,14 @@
         rosto: generateList("Rosto_masculino", 8),
         olhos: generateList("Olhos_masculino", 8),
         cabelos: generateList("Cabelo_masculino", 25),
-        barbas: generateList("Barba_masculino", 14, true), // com "Nenhum" no início
-        oculos: generateList("Óculos_masculino", 9, true)  // com "Nenhum" no início
+        barbas: generateList("Barba_masculino", 14, true),
+        oculos: generateList("Óculos_masculino", 9, true)
       },
       feminino: {
         rosto: generateList("Rosto_feminino", 11),
         olhos: generateList("Olhos_femininos", 8),
         cabelos: generateList("Cabelo_feminino", 13),
-        oculos: generateList("Óculos_feminino", 9, true)   // com "Nenhum" no início (atenção ao acento se houver na pasta)
+        oculos: generateList("Óculos_feminino", 9, true)
       }
     };
 
@@ -82,19 +92,15 @@
       const g = state.gender;
       const c = assets[g];
 
-      // Rosto
       const rostoVal = c.rosto[state.rosto];
       document.getElementById("layerBase").src = rostoVal ? `assets/modules/${g}/rosto/${rostoVal}.png` : "";
 
-      // Olhos
       const olhosVal = c.olhos[state.olhos];
       document.getElementById("layerEyes").src = olhosVal ? `assets/modules/${g}/olhos/${olhosVal}.png` : "";
 
-      // Cabelo
       const cabeloVal = c.cabelos[state.cabelos];
       document.getElementById("layerHair").src = cabeloVal ? `assets/modules/${g}/cabelos/${cabeloVal}.png` : "";
       
-      // Barba (Homem)
       const beardImg = document.getElementById("layerBeard");
       if (g === "feminino" || !c.barbas || c.barbas[state.barbas] === "none") {
         beardImg.src = "";
@@ -102,7 +108,6 @@
         beardImg.src = `assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`;
       }
 
-      // Óculos
       const oculosVal = c.oculos[state.oculos];
       document.getElementById("layerGlasses").src = (!oculosVal || oculosVal === "none") ? "" : `assets/modules/${g}/oculos/${oculosVal}.png`;
 
