@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Teste Visual</title>
+  <title>StarLife - Criador de Personagens</title>
   <style>
     :root {
       --bg-color: #080c14;
@@ -19,8 +19,8 @@
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     .container { width: 100%; max-width: 480px; }
 
-    h1 { text-align: center; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
-    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; }
+    h1 { text-align: center; font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
 
     .panel {
       background-color: var(--panel-bg);
@@ -38,56 +38,164 @@
       background: radial-gradient(circle at 50% 35%, #1e293b 0%, #070a11 85%);
       border: 3px solid var(--accent);
       box-shadow: 0 0 25px var(--accent-glow);
+      position: relative;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    .avatar-stage img {
+    .avatar-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      pointer-events: none;
     }
 
-    .control-group { margin-bottom: 14px; }
-    .control-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
-    
-    select {
-      width: 100%; padding: 11px; border-radius: 10px; border: 1px solid var(--panel-border);
-      background-color: #07090e; color: var(--text-main); font-size: 0.95rem; outline: none;
+    .gender-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: #07090e;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
     }
+
+    .gender-btn {
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .gender-btn.active { background: var(--accent); color: #090d16; }
+
+    .grid-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .control-group { margin-bottom: 12px; }
+    .control-group.full { grid-column: span 2; }
+    .control-group label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: 700; }
+    
+    input[type="text"] {
+      width: 100%; padding: 10px; border-radius: 9px; border: 1px solid var(--panel-border);
+      background-color: #07090e; color: var(--text-main); font-size: 0.88rem; outline: none;
+    }
+    
+    .hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; display: block; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <h1>⭐ StarLife</h1>
-    <p class="subtitle">Teste de Visualização de Avatares</p>
+    <p class="subtitle">Criador de Personagens</p>
 
     <div class="panel">
-      <!-- O círculo onde o avatar vai aparecer -->
       <div class="avatar-stage">
-        <img id="avatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Avatar do Jogo">
+        <!-- Camadas do Avatar -->
+        <img id="layerBase" class="avatar-layer" src="" alt="Rosto">
+        <img id="layerEyes" class="avatar-layer" src="" alt="Olhos">
+        <img id="layerHair" class="avatar-layer" src="" alt="Cabelo">
+        <img id="layerBeard" class="avatar-layer" src="" alt="Barba">
+        <img id="layerGlasses" class="avatar-layer" src="" alt="Óculos">
       </div>
 
-      <div class="control-group">
-        <label>Escolher Estilo / Personagem de Teste</label>
-        <select id="avatarSelect">
-          <option value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400">Estilo Feminino 1</option>
-          <option value="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400">Estilo Masculino 1</option>
-          <option value="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400">Estilo Feminino 2</option>
-          <option value="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400">Estilo Masculino 2</option>
-        </select>
+      <div class="gender-tabs">
+        <button class="gender-btn active" data-gender="masculino">Homem</button>
+        <button class="gender-btn" data-gender="feminino">Mulher</button>
+      </div>
+
+      <div class="grid-controls">
+        <!-- Rosto -->
+        <div class="control-group full">
+          <label>Nome do Ficheiro da Cara</label>
+          <input type="text" id="inputBase" value="exemplo" placeholder="ex: rostos_001">
+          <span class="hint">Ex: se o ficheiro for rostos_001.png, escreve rostos_001</span>
+        </div>
+
+        <!-- Olhos -->
+        <div class="control-group">
+          <label>Nome dos Olhos</label>
+          <input type="text" id="inputEyes" value="" placeholder="ex: olhos_001">
+        </div>
+
+        <!-- Cabelo -->
+        <div class="control-group">
+          <label>Nome do Cabelo</label>
+          <input type="text" id="inputHair" value="" placeholder="ex: barbas_005">
+        </div>
+
+        <!-- Barba (Homem) -->
+        <div class="control-group" id="beardContainer">
+          <label>Nome da Barba</label>
+          <input type="text" id="inputBeard" value="" placeholder="ex: barba_01">
+        </div>
+
+        <!-- Óculos -->
+        <div class="control-group" id="glassesContainer">
+          <label>Nome dos Óculos</label>
+          <input type="text" id="inputGlasses" value="" placeholder="ex: oculos_01">
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // Código simples para mudar a imagem quando selecionas outra opção no menu
-    document.getElementById("avatarSelect").onchange = (e) => {
-      document.getElementById("avatarImg").src = e.target.value;
+    let state = {
+      gender: "masculino",
+      base: "",
+      eyes: "",
+      hair: "",
+      beard: "",
+      glasses: ""
     };
+
+    function updateAvatar() {
+      const folder = `assets/modules/${state.gender}`;
+
+      document.getElementById("layerBase").src = state.base ? `${folder}/caras/${state.base}.png` : "";
+      document.getElementById("layerEyes").src = state.eyes ? `${folder}/olhos/${state.eyes}.png` : "";
+      document.getElementById("layerHair").src = state.hair ? `${folder}/cabelos/${state.hair}.png` : "";
+      
+      const beardImg = document.getElementById("layerBeard");
+      if (state.gender === "feminino" || !state.beard) {
+        beardImg.src = "";
+      } else {
+        beardImg.src = `${folder}/barbas/${state.beard}.png`;
+      }
+
+      document.getElementById("layerGlasses").src = state.glasses ? `${folder}/oculos/${state.glasses}.png` : "";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Botões de Género
+      document.querySelectorAll(".gender-btn").forEach(btn => {
+        btn.onclick = () => {
+          state.gender = btn.dataset.gender;
+          document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
+          
+          const beardContainer = document.getElementById("beardContainer");
+          beardContainer.style.display = (state.gender === "feminino") ? "none" : "block";
+          if (state.gender === "feminino") state.beard = "";
+          
+          updateAvatar();
+        };
+      });
+
+      // Inputs de texto para testar rapidamente os nomes dos ficheiros
+      document.getElementById("inputBase").oninput = (e) => { state.base = e.target.value.trim(); updateAvatar(); };
+      document.getElementById("inputEyes").oninput = (e) => { state.eyes = e.target.value.trim(); updateAvatar(); };
+      document.getElementById("inputHair").oninput = (e) => { state.gear = e.target.value.trim(); updateAvatar(); }; // Corrigido abaixo
+      document.getElementById("inputHair").oninput = (e) => { state.hair = e.target.value.trim(); updateAvatar(); };
+      document.getElementById("inputBeard").oninput = (e) => { state.beard = e.target.value.trim(); updateAvatar(); };
+      document.getElementById("inputGlasses").oninput = (e) => { state.glasses = e.target.value.trim(); updateAvatar(); };
+    });
   </script>
 </body>
 </html>
