@@ -12,10 +12,10 @@
     p.subtitle { text-align: center; color: #9ca3af; font-size: 0.85rem; margin-bottom: 20px; }
     .panel { background-color: #111827; border-radius: 18px; padding: 20px; border: 1px solid #1f2937; }
     
-    /* Círculo com fundo branco para camuflar o fundo das imagens PNG */
+    /* Círculo do avatar */
     .avatar-stage {
       width: 180px; height: 180px; margin: 0 auto 18px auto; border-radius: 50%;
-      background: #ffffff; border: 3px solid #38bdf8; position: relative; overflow: hidden;
+      background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
     }
     
     .avatar-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
@@ -51,20 +51,28 @@
   </div>
 
   <script>
-    // LISTA DE ASSETS: Atualizado para a pasta "rosto"
+    // Função auxiliar para gerar listas automaticamente (ex: "Rosto_masculino" de 1 até 8)
+    function generateList(prefix, count, hasNone = false) {
+      let list = hasNone ? ["none"] : [];
+      for (let i = 1; i <= count; i++) {
+        list.push(`${prefix}${i}`);
+      }
+      return list;
+    }
+
     const assets = {
       masculino: {
-        rosto: ["teste"], // Põe aqui os nomes reais dos ficheiros que tens na pasta "rosto" (sem o .png)
-        olhos: ["olhos_001", "olhos_002"],
-        cabelos: ["barbas_bigodes_005", "barbas_bigodes_006", "barbas_bigodes_007", "barbas_bigodes_008"], 
-        barbas: ["none", "barba_01", "barba_02"],
-        oculos: ["none", "acessorios_001"]
+        rosto: generateList("Rosto_masculino", 8),
+        olhos: generateList("Olhos_masculino", 8),
+        cabelos: generateList("Cabelo_masculino", 25),
+        barbas: generateList("Barba_masculino", 14, true), // com "Nenhum" no início
+        oculos: generateList("Óculos_masculino", 9, true)  // com "Nenhum" no início
       },
       feminino: {
-        rosto: ["teste"], // Põe aqui os nomes reais dos ficheiros da pasta "rosto" de mulher
-        olhos: ["olhos_f_001"],
-        cabelos: ["cabelos_f_001", "cabelos_f_002"],
-        oculos: ["none"]
+        rosto: generateList("Rosto_feminino", 11),
+        olhos: generateList("Olhos_femininos", 8),
+        cabelos: generateList("Cabelo_feminino", 13),
+        oculos: generateList("Óculos_feminino", 9, true)   // com "Nenhum" no início (atenção ao acento se houver na pasta)
       }
     };
 
@@ -74,14 +82,27 @@
       const g = state.gender;
       const c = assets[g];
 
-      // Atualizado para procurar na pasta "rosto"
-      document.getElementById("layerBase").src = c.rosto.length ? `assets/modules/${g}/rosto/${c.rosto[state.rosto]}.png` : "";
-      document.getElementById("layerEyes").src = c.olhos.length ? `assets/modules/${g}/olhos/${c.olhos[state.olhos]}.png` : "";
-      document.getElementById("layerHair").src = c.cabelos.length ? `assets/modules/${g}/cabelos/${c.cabelos[state.cabelos]}.png` : "";
-      
-      const beardImg = document.getElementById("layerBeard");
-      beardImg.src = (g === "feminino" || !c.barbas[state.barbas] || c.barbas[state.barbas] === "none") ? "" : `assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`;
+      // Rosto
+      const rostoVal = c.rosto[state.rosto];
+      document.getElementById("layerBase").src = rostoVal ? `assets/modules/${g}/rosto/${rostoVal}.png` : "";
 
+      // Olhos
+      const olhosVal = c.olhos[state.olhos];
+      document.getElementById("layerEyes").src = olhosVal ? `assets/modules/${g}/olhos/${olhosVal}.png` : "";
+
+      // Cabelo
+      const cabeloVal = c.cabelos[state.cabelos];
+      document.getElementById("layerHair").src = cabeloVal ? `assets/modules/${g}/cabelos/${cabeloVal}.png` : "";
+      
+      // Barba (Homem)
+      const beardImg = document.getElementById("layerBeard");
+      if (g === "feminino" || !c.barbas || c.barbas[state.barbas] === "none") {
+        beardImg.src = "";
+      } else {
+        beardImg.src = `assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`;
+      }
+
+      // Óculos
       const oculosVal = c.oculos[state.oculos];
       document.getElementById("layerGlasses").src = (!oculosVal || oculosVal === "none") ? "" : `assets/modules/${g}/oculos/${oculosVal}.png`;
 
@@ -104,7 +125,8 @@
       categories.forEach(cat => {
         const list = assets[g][cat.key] || ["none"];
         const idx = state[cat.key];
-        const name = list[idx] === "none" ? "Nenhum" : `#${idx + 1}`;
+        const itemName = list[idx];
+        const displayName = itemName === "none" ? "Nenhum" : `#${idx + (list.includes("none") ? 0 : 1)}`;
 
         const row = document.createElement("div");
         row.className = "control-row";
@@ -112,7 +134,7 @@
           <span class="control-label">${cat.label}</span>
           <div class="arrow-group">
             <button class="arrow-btn" onclick="changeItem('${cat.key}', -1)">◀</button>
-            <span class="value-display">${name}</span>
+            <span class="value-display">${displayName}</span>
             <button class="arrow-btn" onclick="changeItem('${cat.key}', 1)">▶</button>
           </div>`;
         container.appendChild(row);
