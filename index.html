@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Criador de Personagens</title>
   <style>
     :root {
       --bg-color: #080c14;
@@ -35,11 +29,11 @@
       height: 180px;
       margin: 0 auto 18px auto;
       border-radius: 50%;
-      background: radial-gradient(circle at 50% 35%, #1e293b 0%, #070a11 85%);
+      background: #1e293b;
       border: 3px solid var(--accent);
       box-shadow: 0 0 25px var(--accent-glow);
       position: relative;
-      overflow: hidden; /* Corta tudo o que sair fora do círculo perfeito */
+      overflow: hidden;
     }
 
     .avatar-layer {
@@ -48,14 +42,13 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* Ajusta a imagem para preencher o espaço sem distorcer */
-      mix-blend-mode: multiply; /* Tenta eliminar o fundo branco automaticamente se as imagens forem JPG/PNG com branco */
+      object-fit: contain; /* Mantém a proporção correta da imagem sem esticar */
       pointer-events: none;
     }
 
-    /* Força a camada do rosto a ficar sem o efeito de mistura para manter as cores reais */
-    #layerBase {
-      mix-blend-mode: normal;
+    /* Isola as camadas para garantir que o fundo branco desaparece no modo escuro */
+    #layerHair, #layerBeard, #layerGlasses, #layerEyes {
+      mix-blend-mode: darken; 
     }
 
     .gender-tabs {
@@ -114,143 +107,3 @@
     .arrow-btn:active { background: var(--accent); color: #090d16; }
     .value-display { font-size: 0.85rem; font-weight: 600; width: 90px; text-align: center; color: var(--accent); }
   </style>
-</head>
-<body>
-
-  <div class="container">
-    <h1>⭐ StarLife</h1>
-    <p class="subtitle">Criador de Personagens</p>
-
-    <div class="panel">
-      <div class="avatar-stage">
-        <!-- Camadas do Avatar -->
-        <img id="layerBase" class="avatar-layer" src="" alt="Rosto">
-        <img id="layerEyes" class="avatar-layer" src="" alt="Olhos">
-        <img id="layerHair" class="avatar-layer" src="" alt="Cabelo">
-        <img id="layerBeard" class="avatar-layer" src="" alt="Barba">
-        <img id="layerGlasses" class="avatar-layer" src="" alt="Óculos">
-      </div>
-
-      <div class="gender-tabs">
-        <button class="gender-btn active" data-gender="masculino">Homem</button>
-        <button class="gender-btn" data-gender="feminino">Mulher</button>
-      </div>
-
-      <div class="controls-grid" id="controlsGrid"></div>
-    </div>
-  </div>
-
-  <script>
-    const assets = {
-      masculino: {
-        caras: ["rostos_001", "rostos_002"], 
-        olhos: ["olhos_001"],
-        cabelos: ["barbas_bigodes_005", "barbas_bigodes_006"], 
-        barbas: ["none", "barba_01"],
-        oculos: ["none"]
-      },
-      feminino: {
-        caras: ["rostos_f_001"],
-        olhos: ["olhos_f_001"],
-        cabelos: ["cabelos_f_001"],
-        oculos: ["none"]
-      }
-    };
-
-    let state = {
-      gender: "masculino",
-      caras: 0,
-      olhos: 0,
-      cabelos: 0,
-      barbas: 0,
-      oculos: 0
-    };
-
-    function updateAvatar() {
-      const g = state.gender;
-      
-      const caraList = assets[g].caras;
-      const olhosList = assets[g].olhos;
-      const cabeloList = assets[g].cabelos;
-      const barbaList = assets[g].barbas || ["none"];
-      const oculosList = assets[g].oculos;
-
-      document.getElementById("layerBase").src = caraList.length ? `assets/modules/${g}/caras/${caraList[state.caras]}.png` : "";
-      document.getElementById("layerEyes").src = olhosList.length ? `assets/modules/${g}/olhos/${olhosList[state.olhos]}.png` : "";
-      document.getElementById("layerHair").src = cabeloList.length ? `assets/modules/${g}/cabelos/${cabeloList[state.cabelos]}.png` : "";
-      
-      const beardImg = document.getElementById("layerBeard");
-      if (g === "feminino" || !barbaList[state.barbas] || barbaList[state.barbas] === "none") {
-        beardImg.src = "";
-      } else {
-        beardImg.src = `assets/modules/${g}/barbas/${barbaList[state.barbas]}.png`;
-      }
-
-      const oculosVal = oculosList[state.oculos];
-      document.getElementById("layerGlasses").src = (!oculosVal || oculosVal === "none") ? "" : `assets/modules/${g}/oculos/${oculosVal}.png`;
-
-      renderControls();
-    }
-
-    function renderControls() {
-      const g = state.gender;
-      const container = document.getElementById("controlsGrid");
-      container.innerHTML = "";
-
-      const categories = [
-        { key: "caras", label: "Cara" },
-        { key: "olhos", label: "Olhos" },
-        { key: "cabelos", label: "Cabelo" },
-      ];
-
-      if (g === "masculino") {
-        categories.push({ key: "barbas", label: "Barba" });
-      }
-      categories.push({ key: "oculos", label: "Óculos" });
-
-      categories.forEach(cat => {
-        const list = assets[g][cat.key] || ["none"];
-        const currentIndex = state[cat.key];
-        const currentName = list[currentIndex] === "none" ? "Nenhum" : `#${currentIndex + 1}`;
-
-        const row = document.createElement("div");
-        row.className = "control-row";
-        row.innerHTML = `
-          <span class="control-label">${cat.label}</span>
-          <div class="arrow-group">
-            <button class="arrow-btn" onclick="changeItem('${cat.key}', -1)">◀</button>
-            <span class="value-display">${currentName}</span>
-            <button class="arrow-btn" onclick="changeItem('${cat.key}', 1)">▶</button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    window.changeItem = function(category, direction) {
-      const g = state.gender;
-      const list = assets[g][category] || ["none"];
-      
-      state[category] += direction;
-      if (state[category] < 0) state[category] = list.length - 1;
-      if (state[category] >= list.length) state[category] = 0;
-
-      updateAvatar();
-    };
-
-    document.querySelectorAll(".gender-btn").forEach(btn => {
-      btn.onclick = () => {
-        state.gender = btn.dataset.gender;
-        document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
-        
-        state.caras = 0; state.olhos = 0; state.cabelos = 0; state.barbas = 0; state.oculos = 0;
-        updateAvatar();
-      };
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      updateAvatar();
-    });
-  </script>
-</body>
-</html>
