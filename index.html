@@ -3,64 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Cinematic Art Studio</title>
+  <title>StarLife - 3D Studio Avatar Engine</title>
   <style>
     :root {
-      --bg-color: #07090e;
-      --panel-bg: #111622;
-      --panel-border: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-color: #090d16;
+      --panel-bg: #111827;
+      --panel-border: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
       --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.25);
+      --accent-glow: rgba(56, 189, 248, 0.3);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    .container { width: 100%; max-width: 480px; }
-    
-    h1 { text-align: center; margin-bottom: 4px; color: var(--accent); font-size: 1.5rem; letter-spacing: 0.5px; }
-    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1.5px; }
+    .container { width: 100%; max-width: 520px; }
 
+    h1 { text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
+
+    /* Grelha de Seleção Rápida (Estilo Ecrã Inicial) */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .preset-card {
+      background: radial-gradient(circle at 50% 35%, #1e293b 0%, #090d16 85%);
+      border: 2px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 8px 4px 0 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .preset-card:hover { transform: translateY(-2px); border-color: #4b5563; }
+    .preset-card.selected { border-color: var(--accent); box-shadow: 0 0 18px var(--accent-glow); }
+    .preset-card svg { width: 95px; height: 95px; display: block; }
+
+    /* Painel Principal de Estúdio */
     .panel {
       background-color: var(--panel-bg);
       border-radius: 18px;
       padding: 20px;
-      margin-bottom: 16px;
       border: 1px solid var(--panel-border);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
 
-    .avatar-showcase {
-      width: 160px;
-      height: 160px;
+    .main-stage {
+      width: 180px;
+      height: 180px;
       margin: 0 auto 18px auto;
       border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, #1e293b 0%, #070a11 85%);
       border: 3px solid var(--accent);
       box-shadow: 0 0 30px var(--accent-glow);
       overflow: hidden;
-      background: #0b0f19;
     }
 
-    .avatar-showcase svg {
-      width: 100%;
-      height: 100%;
-      display: block;
+    .main-stage svg { width: 100%; height: 100%; display: block; }
+
+    .gender-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      background: #090d16;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
     }
 
-    .control-group { margin-bottom: 14px; }
-    .control-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; }
-    
+    .gender-btn {
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .gender-btn.active { background: var(--accent); color: #090d16; }
+
+    .grid-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .control-group { margin-bottom: 12px; }
+    .control-group.full { grid-column: span 2; }
+    .control-group label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.6px; }
+
     select {
-      width: 100%; padding: 11px; border-radius: 10px; border: 1px solid var(--panel-border);
-      background-color: #07090e; color: var(--text-main); font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 10px; border-radius: 9px; border: 1px solid var(--panel-border);
+      background-color: #090d16; color: var(--text-main); font-size: 0.88rem; outline: none;
     }
     select:focus { border-color: var(--accent); }
 
-    .swatches { display: flex; gap: 8px; margin-top: 4px; }
+    .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
     .swatch {
-      width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.4); transition: transform 0.15s ease, border-color 0.15s;
+      width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5); transition: transform 0.15s;
     }
     .swatch.active { border-color: #ffffff; transform: scale(1.15); }
   </style>
@@ -68,196 +116,462 @@
 <body>
 
   <div class="container">
-    <h1>⭐ StarLife</h1>
-    <p class="subtitle">Cinematic Portrait Engine</p>
+    <h1>Escolher um Avatar</h1>
+    <p class="subtitle">Você poderá customizar mais tarde</p>
+
+    <!-- Grelha de 6 Predefinições (3 Homens + 3 Mulheres) -->
+    <div class="presets-grid" id="presetsGrid"></div>
 
     <div class="panel">
-      <div id="avatarContainer" class="avatar-showcase"></div>
+      <div id="mainAvatar" class="main-stage"></div>
 
-      <div class="control-group">
-        <label>Tom de Pele (Estúdio)</label>
-        <div class="swatches" id="skinSwatches">
-          <button class="swatch active" data-color="#ffd8be" style="background: #ffd8be;"></button>
-          <button class="swatch" data-color="#d99f68" style="background: #d99f68;"></button>
-          <button class="swatch" data-color="#9e663d" style="background: #9e663d;"></button>
-          <button class="swatch" data-color="#51301d" style="background: #51301d;"></button>
+      <div class="gender-tabs">
+        <button class="gender-btn active" data-gender="male">Homem</button>
+        <button class="gender-btn" data-gender="female">Mulher</button>
+      </div>
+
+      <div class="grid-controls">
+        <div class="control-group full">
+          <label>Tom de Pele</label>
+          <div class="swatches" id="skinSwatches">
+            <button class="swatch active" data-skin="light" style="background: #f5cbb0;"></button>
+            <button class="swatch" data-skin="warm" style="background: #dfa379;"></button>
+            <button class="swatch" data-skin="olive" style="background: #c4845a;"></button>
+            <button class="swatch" data-skin="brown" style="background: #8d5534;"></button>
+            <button class="swatch" data-skin="dark" style="background: #52301e;"></button>
+          </div>
         </div>
-      </div>
 
-      <div class="control-group">
-        <label>Penteado / Estilo de Cabelo</label>
-        <select id="hairStyleSelect">
-          <option value="modernExecutive">Executivo Texturizado</option>
-          <option value="messyArtistic">Estilo Artístico / Ondulado</option>
-          <option value="shortCrop">Curto Militar Premium</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label>Tom de Cabelo</label>
-        <div class="swatches" id="hairSwatches">
-          <button class="swatch active" data-color="#141416" style="background: #141416;"></button>
-          <button class="swatch" data-color="#854d0e" style="background: #854d0e;"></button>
-          <button class="swatch" data-color="#d97706" style="background: #d97706;"></button>
-          <button class="swatch" data-color="#cbd5e1" style="background: #cbd5e1;"></button>
+        <div class="control-group">
+          <label>Penteado</label>
+          <select id="hairStyleSelect"></select>
         </div>
-      </div>
 
-      <div class="control-group">
-        <label>Atitude / Expressão</label>
-        <select id="moodSelect">
-          <option value="ambitious">Ambicioso / Focado</option>
-          <option value="confident">Confiante / Sucesso</option>
-          <option value="serious">Sério / Intenso</option>
-        </select>
+        <div class="control-group">
+          <label>Cor do Cabelo</label>
+          <select id="hairColorSelect">
+            <option value="black">Preto Intenso</option>
+            <option value="darkBrown">Castanho Escuro</option>
+            <option value="chestnut">Castanho Mel</option>
+            <option value="blonde">Loiro Dourado</option>
+            <option value="platinum">Platinado / Gris</option>
+            <option value="auburn">Ruivo Acobreado</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label id="facialDetailLabel">Barba / Detalhe</label>
+          <select id="facialDetailSelect"></select>
+        </div>
+
+        <div class="control-group">
+          <label>Acessórios / Óculos</label>
+          <select id="glassesSelect">
+            <option value="none">Sem Óculos</option>
+            <option value="round">Óculos Redondos</option>
+            <option value="executive">Armação Executiva</option>
+            <option value="aviator">Óculos Escuros</option>
+          </select>
+        </div>
+
+        <div class="control-group full">
+          <label>Vestuário / Estilo</label>
+          <select id="outfitSelect">
+            <option value="whiteShirt">Camisa Social Branca</option>
+            <option value="blackSuit">Fato Executivo Escuro</option>
+            <option value="turtleneck">Gola Alta Casual</option>
+            <option value="streetJacket">Blusão Urbano</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const state = {
-      skin: "#ffd8be",
-      hairStyle: "modernExecutive",
-      hairColor: "#141416",
-      mood: "ambitious"
+    const PALETTES = {
+      skin: {
+        light: { base: "#f5cbb0", highlight: "#ffe5d4", shadow: "#b88263", lip: "#c97a73" },
+        warm:  { base: "#dfa379", highlight: "#f2be99", shadow: "#9c623c", lip: "#b3665e" },
+        olive: { base: "#c4845a", highlight: "#dba079", shadow: "#804b29", lip: "#99534b" },
+        brown: { base: "#8d5534", highlight: "#a86e4b", shadow: "#522c16", lip: "#6e3832" },
+        dark:  { base: "#52301e", highlight: "#6e442e", shadow: "#2b160b", lip: "#45221e" }
+      },
+      hair: {
+        black:     { base: "#17171a", highlight: "#36363d", shadow: "#09090b" },
+        darkBrown: { base: "#2e1d14", highlight: "#4f3425", shadow: "#170d08" },
+        chestnut:  { base: "#5e3820", highlight: "#875434", shadow: "#361e0f" },
+        blonde:    { base: "#cfa55b", highlight: "#ebd096", shadow: "#946f30" },
+        platinum:  { base: "#cbd5e1", highlight: "#f1f5f9", shadow: "#64748b" },
+        auburn:    { base: "#7c2d12", highlight: "#b45309", shadow: "#451a03" }
+      }
     };
 
-    function renderAvatar() {
-      let hairHTML = "";
-      if (state.hairStyle === "modernExecutive") {
-        hairHTML = `
-          <path d="M 23 35 C 19 12, 35 2, 50 6 C 65 2, 81 12, 77 35 C 85 28, 89 42, 77 48 C 68 36, 58 38, 50 38 C 42 38, 32 36, 23 48 C 11 42, 15 28, 23 35 Z" fill="${state.hairColor}" />
-          <path d="M 32 18 Q 50 8, 68 18" stroke="rgba(255,255,255,0.22)" stroke-width="3.5" stroke-linecap="round" fill="none" />
+    const OPTIONS = {
+      male: {
+        hair: [
+          { value: "partedLong", label: "Médio Repartido" },
+          { value: "fadeShort", label: "Fade Executivo" },
+          { value: "sideSweep", label: "Topete Lateral" },
+          { value: "afroFade", label: "Crespo Volumoso" },
+          { value: "buzzCut", label: "Curto Militar" }
+        ],
+        detailLabel: "Barba",
+        details: [
+          { value: "none", label: "Rosto Limpo" },
+          { value: "stubble", label: "Barba Por Fazer" },
+          { value: "goatee", label: "Cavanhaque Definido" },
+          { value: "fullBeard", label: "Barba Fechada" }
+        ]
+      },
+      female: {
+        hair: [
+          { value: "longWaves", label: "Longo Ondulado" },
+          { value: "sleekBob", label: "Chanel / Bob Liso" },
+          { value: "highBun", label: "Coque Elegante" },
+          { value: "curlyVolume", label: "Caracóis Naturais" },
+          { value: "pixieCut", label: "Curto Moderno" }
+        ],
+        detailLabel: "Maquilhagem",
+        details: [
+          { value: "natural", label: "Natural" },
+          { value: "softGlam", label: "Batom Suave + Eyeliner" },
+          { value: "redLip", label: "Batom Vermelho Clássico" },
+          { value: "roseGlow", label: "Brilho Rosado" }
+        ]
+      }
+    };
+
+    const PRESETS = [
+      { gender: "male", skin: "light", hairStyle: "partedLong", hairColor: "chestnut", detail: "goatee", glasses: "none", outfit: "whiteShirt" },
+      { gender: "male", skin: "olive", hairStyle: "fadeShort", hairColor: "black", detail: "none", glasses: "none", outfit: "whiteShirt" },
+      { gender: "male", skin: "light", hairStyle: "sideSweep", hairColor: "black", detail: "fullBeard", glasses: "round", outfit: "whiteShirt" },
+      { gender: "female", skin: "warm", hairStyle: "longWaves", hairColor: "darkBrown", detail: "softGlam", glasses: "none", outfit: "whiteShirt" },
+      { gender: "female", skin: "light", hairStyle: "sleekBob", hairColor: "blonde", detail: "redLip", glasses: "executive", outfit: "whiteShirt" },
+      { gender: "female", skin: "brown", hairStyle: "curlyVolume", hairColor: "black", detail: "roseGlow", glasses: "round", outfit: "whiteShirt" }
+    ];
+
+    let state = { ...PRESETS[0], activePreset: 0 };
+
+    function buildAvatarSVG(cfg, uid) {
+      const s = PALETTES.skin[cfg.skin];
+      const h = PALETTES.hair[cfg.hairColor];
+      const isFemale = cfg.gender === "female";
+
+      // 1. Cabelo de Trás (para penteados longos ou volumosos)
+      let backHair = "";
+      if (isFemale) {
+        if (cfg.hairStyle === "longWaves") {
+          backHair = `
+            <path d="M 24 38 C 16 55, 14 82, 22 98 L 78 98 C 86 82, 84 55, 76 38 Z" fill="url(#hairGrad_${uid})" />
+            <path d="M 22 50 Q 18 75, 24 95" stroke="${h.shadow}" stroke-width="3" fill="none" />
+            <path d="M 78 50 Q 82 75, 76 95" stroke="${h.shadow}" stroke-width="3" fill="none" />
+          `;
+        } else if (cfg.hairStyle === "sleekBob") {
+          backHair = `<path d="M 25 36 C 20 55, 22 72, 28 76 L 72 76 C 78 72, 80 55, 75 36 Z" fill="url(#hairGrad_${uid})" />`;
+        } else if (cfg.hairStyle === "highBun") {
+          backHair = `<circle cx="50" cy="12" r="13" fill="url(#hairGrad_${uid})" />`;
+        } else if (cfg.hairStyle === "curlyVolume") {
+          backHair = `
+            <circle cx="26" cy="36" r="12" fill="${h.base}" />
+            <circle cx="74" cy="36" r="12" fill="${h.base}" />
+            <circle cx="22" cy="52" r="13" fill="${h.shadow}" />
+            <circle cx="78" cy="52" r="13" fill="${h.shadow}" />
+            <circle cx="26" cy="68" r="11" fill="${h.base}" />
+            <circle cx="74" cy="68" r="11" fill="${h.base}" />
+          `;
+        }
+      } else if (cfg.hairStyle === "partedLong") {
+        backHair = `<path d="M 26 36 C 22 50, 23 64, 28 68 L 72 68 C 77 64, 78 50, 74 36 Z" fill="${h.shadow}" />`;
+      }
+
+      // 2. Vestuário com sombreado 3D
+      let outfitHTML = "";
+      if (cfg.outfit === "whiteShirt") {
+        outfitHTML = `
+          <path d="M 14 100 C 16 74, 84 74, 86 100 Z" fill="url(#shirtWhite_${uid})" />
+          <path d="M 38 73 L 50 92 L 62 73 Z" fill="#1e293b" />
+          <path d="M 37 72 L 44 86 L 50 80 L 42 71 Z" fill="#ffffff" />
+          <path d="M 63 72 L 56 86 L 50 80 L 58 71 Z" fill="#ffffff" />
         `;
-      } else if (state.hairStyle === "messyArtistic") {
-        hairHTML = `
-          <path d="M 21 38 C 17 14, 33 2, 50 6 C 67 2, 83 14, 79 38 C 87 32, 93 48, 77 52 C 67 38, 57 41, 50 41 C 43 41, 33 38, 23 52 C 7 48, 13 32, 21 38 Z" fill="${state.hairColor}" />
-          <circle cx="34" cy="12" r="9" fill="${state.hairColor}" />
-          <circle cx="50" cy="8" r="11" fill="${state.hairColor}" />
-          <circle cx="66" cy="12" r="9" fill="${state.hairColor}" />
+      } else if (cfg.outfit === "blackSuit") {
+        outfitHTML = `
+          <path d="M 14 100 C 16 74, 84 74, 86 100 Z" fill="#111827" />
+          <path d="M 38 73 L 50 94 L 62 73 Z" fill="#f8fafc" />
+          <path d="M 47 77 L 53 77 L 52 94 L 48 94 Z" fill="#0284c7" />
+          <path d="M 36 73 L 43 96 L 31 96 Z" fill="#1f2937" />
+          <path d="M 64 73 L 57 96 L 69 96 Z" fill="#1f2937" />
         `;
-      } else if (state.hairStyle === "shortCrop") {
-        hairHTML = `
-          <path d="M 26 35 C 24 16, 76 16, 74 35 C 68 22, 32 22, 26 35 Z" fill="${state.hairColor}" />
+      } else if (cfg.outfit === "turtleneck") {
+        outfitHTML = `
+          <path d="M 14 100 C 16 75, 84 75, 86 100 Z" fill="#1e293b" />
+          <rect x="39" y="66" width="22" height="14" rx="4" fill="#0f172a" />
+        `;
+      } else if (cfg.outfit === "streetJacket") {
+        outfitHTML = `
+          <path d="M 14 100 C 16 74, 84 74, 86 100 Z" fill="#7f1d1d" />
+          <path d="M 39 73 L 61 73 L 58 100 L 42 100 Z" fill="#18181b" />
         `;
       }
 
-      let mouthHTML = "";
-      if (state.mood === "ambitious") {
-        mouthHTML = `<path d="M 40 65 Q 50 68 60 65" stroke="#3d1c1c" stroke-width="3" stroke-linecap="round" fill="none" />`;
-      } else if (state.mood === "confident") {
-        mouthHTML = `
-          <path d="M 38 63 Q 50 72 62 63" stroke="#3d1c1c" stroke-width="3.2" stroke-linecap="round" fill="#f43f5e" fill-opacity="0.6" />
-          <path d="M 41 63 Q 50 67 59 63" stroke="#3d1c1c" stroke-width="2" fill="none" />
-        `;
-      } else if (state.mood === "serious") {
-        mouthHTML = `<line x1="41" y1="65" x2="59" y2="65" stroke="#3d1c1c" stroke-width="3" stroke-linecap="round" />`;
+      // 3. Forma do Rosto (Mandíbula masculina vs. contorno feminino suave)
+      const facePath = isFemale
+        ? "M 30 34 C 30 18, 70 18, 70 34 C 70 52, 63 66, 50 68 C 37 66, 30 52, 30 34 Z"
+        : "M 29 33 C 29 17, 71 17, 71 33 L 69 53 C 68 62, 59 68, 50 69 C 41 68, 32 62, 31 53 Z";
+
+      // 4. Barba ou Maquilhagem
+      let facialDetailHTML = "";
+      let lipColor = s.lip;
+      if (!isFemale) {
+        if (cfg.detail === "stubble") {
+          facialDetailHTML = `<path d="M 31 48 C 31 61, 41 68, 50 69 C 59 68, 69 61, 69 48 C 66 56, 59 61, 50 61 C 41 61, 34 56, 31 48 Z" fill="${h.base}" opacity="0.28" />`;
+        } else if (cfg.detail === "goatee") {
+          facialDetailHTML = `
+            <path d="M 42 56 Q 50 53, 58 56 L 56 58 Q 50 56, 44 58 Z" fill="${h.base}" />
+            <path d="M 43 62 Q 50 68, 57 62 L 55 67 Q 50 70, 45 67 Z" fill="${h.base}" />
+          `;
+        } else if (cfg.detail === "fullBeard") {
+          facialDetailHTML = `
+            <path d="M 30 44 C 30 62, 40 69, 50 70 C 60 69, 70 62, 70 44 L 67 44 C 66 54, 60 58, 50 58 C 40 58, 34 54, 33 44 Z" fill="url(#hairGrad_${uid})" />
+            <path d="M 41 56 Q 50 53, 59 56 L 57 59 Q 50 57, 43 59 Z" fill="${h.base}" />
+          `;
+        }
+      } else {
+        if (cfg.detail === "softGlam") lipColor = "#c05664";
+        if (cfg.detail === "redLip") lipColor = "#9f1239";
+        if (cfg.detail === "roseGlow") lipColor = "#db2777";
       }
 
-      const svg = `
+      // 5. Cabelo Frontal
+      let frontHair = "";
+      if (!isFemale) {
+        if (cfg.hairStyle === "partedLong") {
+          frontHair = `
+            <path d="M 50 16 C 34 15, 23 28, 25 52 C 28 40, 35 28, 49 23 Z" fill="url(#hairGrad_${uid})" />
+            <path d="M 50 16 C 66 15, 77 28, 75 52 C 72 40, 65 28, 51 23 Z" fill="url(#hairGrad_${uid})" />
+          `;
+        } else if (cfg.hairStyle === "fadeShort") {
+          frontHair = `<path d="M 29 33 C 29 16, 71 16, 71 33 C 68 23, 32 23, 29 33 Z" fill="url(#hairGrad_${uid})" />`;
+        } else if (cfg.hairStyle === "sideSweep") {
+          frontHair = `<path d="M 28 34 C 26 14, 52 10, 72 20 C 75 26, 73 33, 71 34 C 64 24, 38 24, 28 34 Z" fill="url(#hairGrad_${uid})" />`;
+        } else if (cfg.hairStyle === "afroFade") {
+          frontHair = `
+            <path d="M 28 33 C 25 14, 75 14, 72 33 C 66 24, 34 24, 28 33 Z" fill="${h.base}" />
+            <circle cx="36" cy="18" r="6" fill="${h.base}" />
+            <circle cx="45" cy="15" r="7" fill="${h.highlight}" />
+            <circle cx="55" cy="15" r="7" fill="${h.base}" />
+            <circle cx="64" cy="18" r="6" fill="${h.base}" />
+          `;
+        } else if (cfg.hairStyle === "buzzCut") {
+          frontHair = `<path d="M 29 33 C 30 18, 70 18, 71 33 C 66 25, 34 25, 29 33 Z" fill="${h.base}" opacity="0.85" />`;
+        }
+      } else {
+        if (cfg.hairStyle === "longWaves" || cfg.hairStyle === "sleekBob") {
+          frontHair = `
+            <path d="M 50 15 C 32 15, 24 28, 26 48 C 30 34, 38 25, 50 22 Z" fill="url(#hairGrad_${uid})" />
+            <path d="M 50 15 C 68 15, 76 28, 74 48 C 70 34, 62 25, 50 22 Z" fill="url(#hairGrad_${uid})" />
+          `;
+        } else if (cfg.hairStyle === "highBun") {
+          frontHair = `<path d="M 29 34 C 29 17, 71 17, 71 34 C 65 23, 35 23, 29 34 Z" fill="url(#hairGrad_${uid})" />`;
+        } else if (cfg.hairStyle === "curlyVolume") {
+          frontHair = `
+            <circle cx="32" cy="24" r="9" fill="${h.base}" />
+            <circle cx="44" cy="17" r="10" fill="${h.highlight}" />
+            <circle cx="56" cy="17" r="10" fill="${h.base}" />
+            <circle cx="68" cy="24" r="9" fill="${h.base}" />
+          `;
+        } else if (cfg.hairStyle === "pixieCut") {
+          frontHair = `<path d="M 28 35 C 27 15, 62 12, 72 28 C 66 24, 42 23, 28 35 Z" fill="url(#hairGrad_${uid})" />`;
+        }
+      }
+
+      // 6. Óculos
+      let glassesHTML = "";
+      if (cfg.glasses === "round") {
+        glassesHTML = `
+          <g stroke="#18181b" stroke-width="1.8" fill="rgba(255,255,255,0.08)">
+            <circle cx="40" cy="42" r="6.5" />
+            <circle cx="60" cy="42" r="6.5" />
+            <path d="M 46.5 42 Q 50 40, 53.5 42" fill="none" />
+          </g>
+        `;
+      } else if (cfg.glasses === "executive") {
+        glassesHTML = `
+          <g stroke="#334155" stroke-width="1.8" fill="rgba(255,255,255,0.08)">
+            <rect x="33" y="37" width="13.5" height="9" rx="2.5" />
+            <rect x="53.5" y="37" width="13.5" height="9" rx="2.5" />
+            <line x1="46.5" y1="41" x2="53.5" y2="41" />
+          </g>
+        `;
+      } else if (cfg.glasses === "aviator") {
+        glassesHTML = `
+          <g stroke="#d97706" stroke-width="1.5" fill="#090d16">
+            <path d="M 32 38 L 47 39 L 45 47 Q 38 49, 33 45 Z" />
+            <path d="M 53 39 L 68 38 L 67 45 Q 62 49, 55 47 Z" />
+            <line x1="47" y1="39.5" x2="53" y2="39.5" />
+          </g>
+        `;
+      }
+
+      return `
         <svg viewBox="0 0 100 100">
           <defs>
-            <radialGradient id="cinematicSkin" cx="50%" cy="28%" r="72%">
-              <stop offset="0%" stop-color="${state.skin}" />
-              <stop offset="70%" stop-color="${state.skin}" />
-              <stop offset="100%" stop-color="#1e130d" stop-opacity="0.45" />
+            <radialGradient id="skinGrad_${uid}" cx="45%" cy="32%" r="68%">
+              <stop offset="0%" stop-color="${s.highlight}" />
+              <stop offset="55%" stop-color="${s.base}" />
+              <stop offset="100%" stop-color="${s.shadow}" />
             </radialGradient>
-            <linearGradient id="luxurySuit" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#1e293b" />
+            <linearGradient id="hairGrad_${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${h.highlight}" />
+              <stop offset="50%" stop-color="${h.base}" />
+              <stop offset="100%" stop-color="${h.shadow}" />
+            </linearGradient>
+            <linearGradient id="shirtWhite_${uid}" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#f8fafc" />
+              <stop offset="65%" stop-color="#cbd5e1" />
               <stop offset="100%" stop-color="#090d16" />
             </linearGradient>
-            <radialGradient id="rimLight" cx="50%" cy="20%" r="80%">
-              <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
-              <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
-            </radialGradient>
+            <linearGradient id="fadeBottom_${uid}" x1="0%" y1="70%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#090d16" stop-opacity="0" />
+              <stop offset="100%" stop-color="#090d16" stop-opacity="0.95" />
+            </linearGradient>
           </defs>
 
-          <!-- Fundo escuro com iluminação ambiente de estúdio -->
-          <circle cx="50" cy="50" r="48" fill="#0b0f19" />
-          <circle cx="50" cy="50" r="48" fill="url(#rimLight)" />
+          ${backHair}
+          ${outfitHTML}
 
-          <!-- Casaco / Fato Executivo com lapela elegante -->
-          <path d="M 16 96 C 18 68, 82 68, 84 96 Z" fill="url(#luxurySuit)" />
-          <path d="M 37 68 L 50 84 L 63 68 Z" fill="#f8fafc" opacity="0.95" />
-          <path d="M 43 68 L 50 78 L 57 68 Z" fill="#0b0f19" />
-          <path d="M 37 68 L 26 96 L 33 96 Z" fill="#0f172a" />
-          <path d="M 63 68 L 74 96 L 67 96 Z" fill="#0f172a" />
+          <!-- Pescoço com sombra sob o queixo -->
+          <rect x="42" y="58" width="16" height="20" fill="url(#skinGrad_${uid})" />
+          <ellipse cx="50" cy="65" rx="9" ry="5" fill="${s.shadow}" opacity="0.55" />
 
-          <!-- Pescoço com sombra profunda -->
-          <rect x="41" y="58" width="18" height="24" fill="url(#cinematicSkin)" />
+          <!-- Orelhas -->
+          <ellipse cx="29.5" cy="44" rx="3.2" ry="5.5" fill="${s.shadow}" />
+          <ellipse cx="70.5" cy="44" rx="3.2" ry="5.5" fill="${s.shadow}" />
 
-          <!-- Orelhas refinadas -->
-          <circle cx="26" cy="46" r="5.5" fill="url(#cinematicSkin)" />
-          <circle cx="74" cy="46" r="5.5" fill="url(#cinematicSkin)" />
+          <!-- Cabeça com volume 3D -->
+          <path d="${facePath}" fill="url(#skinGrad_${uid})" />
 
-          <!-- Rosto principal (Proporção equilibrada e madura) -->
-          <rect x="27" y="19" width="46" height="52" rx="21" fill="url(#cinematicSkin)" />
+          <!-- Rubor suave (especialmente visível no modo feminino) -->
+          ${isFemale ? `
+            <circle cx="37" cy="49" r="5" fill="#f43f5e" opacity="0.16" />
+            <circle cx="63" cy="49" r="5" fill="#f43f5e" opacity="0.16" />
+          ` : ''}
 
-          <!-- Olhos de Alta Qualidade com brilho cinematográfico -->
+          <!-- Olhos realistas estilizados -->
           <g>
-            <ellipse cx="37" cy="44" rx="4.8" ry="5.2" fill="#ffffff" />
-            <circle cx="37" cy="44" r="3" fill="#0f172a" />
-            <circle cx="35.5" cy="42.5" r="1.1" fill="#ffffff" />
-            <circle cx="38.5" cy="45.5" r="0.4" fill="#ffffff" />
+            <ellipse cx="40" cy="42" rx="4.2" ry="2.8" fill="#ffffff" />
+            <circle cx="40" cy="42" r="2.2" fill="#271c19" />
+            <circle cx="39.2" cy="41.2" r="0.8" fill="#ffffff" />
+            ${isFemale ? `<path d="M 35.5 40.5 Q 40 38.5, 44.5 40.5" stroke="#090d16" stroke-width="1.3" fill="none" />` : ''}
           </g>
           <g>
-            <ellipse cx="63" cy="44" rx="4.8" ry="5.2" fill="#ffffff" />
-            <circle cx="63" cy="44" r="3" fill="#0f172a" />
-            <circle cx="61.5" cy="42.5" r="1.1" fill="#ffffff" />
-            <circle cx="64.5" cy="45.5" r="0.4" fill="#ffffff" />
+            <ellipse cx="60" cy="42" rx="4.2" ry="2.8" fill="#ffffff" />
+            <circle cx="60" cy="42" r="2.2" fill="#271c19" />
+            <circle cx="59.2" cy="41.2" r="0.8" fill="#ffffff" />
+            ${isFemale ? `<path d="M 55.5 40.5 Q 60 38.5, 64.5 40.5" stroke="#090d16" stroke-width="1.3" fill="none" />` : ''}
           </g>
 
-          <!-- Sobrancelhas marcantes e expressivas -->
-          <path d="M 31 36 Q 37 32, 43 36" stroke="${state.hairColor}" stroke-width="2.6" stroke-linecap="round" fill="none" />
-          <path d="M 57 36 Q 63 32, 69 36" stroke="${state.hairColor}" stroke-width="2.6" stroke-linecap="round" fill="none" />
+          <!-- Sobrancelhas -->
+          <path d="M 35 36.5 Q 40 34.5, 44.5 36.5" stroke="${h.base}" stroke-width="${isFemale ? '1.6' : '2.2'}" stroke-linecap="round" fill="none" />
+          <path d="M 55.5 36.5 Q 60 34.5, 65 36.5" stroke="${h.base}" stroke-width="${isFemale ? '1.6' : '2.2'}" stroke-linecap="round" fill="none" />
 
-          <!-- Nariz refinado e estruturado -->
-          <path d="M 50 42 L 47.5 52 L 52.5 52" stroke="rgba(0,0,0,0.18)" stroke-width="2" fill="none" stroke-linecap="round" />
+          <!-- Nariz com sombra lateral 3D -->
+          <path d="M 50 41 L 48.2 49.5 L 51.8 49.5" stroke="${s.shadow}" stroke-width="1.5" stroke-linecap="round" fill="none" />
 
-          <!-- Boca -->
-          ${mouthHTML}
+          <!-- Lábios -->
+          <path d="M 44.5 57.5 Q 50 56, 55.5 57.5 Q 50 61.5, 44.5 57.5 Z" fill="${lipColor}" />
+          <path d="M 45 57.5 Q 50 58.8, 55 57.5" stroke="${s.shadow}" stroke-width="0.9" fill="none" />
 
-          <!-- Camada de Cabelo Dinâmica -->
-          ${hairHTML}
+          ${facialDetailHTML}
+          ${frontHair}
+          ${glassesHTML}
+
+          <!-- Vinheta inferior suave estilo estúdio -->
+          <rect x="0" y="70" width="100" height="30" fill="url(#fadeBottom_${uid})" />
         </svg>
       `;
+    }
 
-      const container = document.getElementById("avatarContainer");
-      if (container) {
-        container.innerHTML = svg;
-      }
+    function populateDropdowns() {
+      const gOpts = OPTIONS[state.gender];
+      const hairSelect = document.getElementById("hairStyleSelect");
+      const detailSelect = document.getElementById("facialDetailSelect");
+      document.getElementById("facialDetailLabel").textContent = gOpts.detailLabel;
+
+      hairSelect.innerHTML = gOpts.hair.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+      detailSelect.innerHTML = gOpts.details.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+
+      hairSelect.value = state.hairStyle;
+      detailSelect.value = state.detail;
+      document.getElementById("hairColorSelect").value = state.hairColor;
+      document.getElementById("glassesSelect").value = state.glasses;
+      document.getElementById("outfitSelect").value = state.outfit;
+
+      document.querySelectorAll(".gender-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.gender === state.gender);
+      });
+
+      document.querySelectorAll("#skinSwatches .swatch").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.skin === state.skin);
+      });
+    }
+
+    function renderPresets() {
+      const grid = document.getElementById("presetsGrid");
+      grid.innerHTML = PRESETS.map((preset, idx) => `
+        <div class="preset-card ${state.activePreset === idx ? 'selected' : ''}" data-idx="${idx}">
+          ${buildAvatarSVG(preset, "p" + idx)}
+        </div>
+      `).join("");
+
+      grid.querySelectorAll(".preset-card").forEach(card => {
+        card.onclick = () => {
+          const idx = Number(card.dataset.idx);
+          state = { ...PRESETS[idx], activePreset: idx };
+          populateDropdowns();
+          renderMain();
+          renderPresets();
+        };
+      });
+    }
+
+    function renderMain() {
+      document.getElementById("mainAvatar").innerHTML = buildAvatarSVG(state, "main");
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      populateDropdowns();
+      renderPresets();
+      renderMain();
+
+      document.querySelectorAll(".gender-btn").forEach(btn => {
+        btn.onclick = () => {
+          const newGender = btn.dataset.gender;
+          if (newGender === state.gender) return;
+          state.gender = newGender;
+          state.activePreset = -1;
+          state.hairStyle = OPTIONS[newGender].hair[0].value;
+          state.detail = OPTIONS[newGender].details[0].value;
+          populateDropdowns();
+          renderMain();
+          renderPresets();
+        };
+      });
+
       document.querySelectorAll("#skinSwatches .swatch").forEach(btn => {
         btn.onclick = () => {
-          document.querySelectorAll("#skinSwatches .swatch").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          state.skin = btn.dataset.color;
-          renderAvatar();
+          state.skin = btn.dataset.skin;
+          state.activePreset = -1;
+          populateDropdowns();
+          renderMain();
+          renderPresets();
         };
       });
 
-      document.querySelectorAll("#hairSwatches .swatch").forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll("#hairSwatches .swatch").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          state.hairColor = btn.dataset.color;
-          renderAvatar();
-        };
-      });
-
-      document.getElementById("hairStyleSelect").onchange = (e) => {
-        state.hairStyle = e.target.value;
-        renderAvatar();
-      };
-
-      document.getElementById("moodSelect").onchange = (e) => {
-        state.mood = e.target.value;
-        renderAvatar();
-      };
-
-      renderAvatar();
+      document.getElementById("hairStyleSelect").onchange = e => { state.hairStyle = e.target.value; state.activePreset = -1; renderMain(); renderPresets(); };
+      document.getElementById("hairColorSelect").onchange = e => { state.hairColor = e.target.value; state.activePreset = -1; renderMain(); renderPresets(); };
+      document.getElementById("facialDetailSelect").onchange = e => { state.detail = e.target.value; state.activePreset = -1; renderMain(); renderPresets(); };
+      document.getElementById("glassesSelect").onchange = e => { state.glasses = e.target.value; state.activePreset = -1; renderMain(); renderPresets(); };
+      document.getElementById("outfitSelect").onchange = e => { state.outfit = e.target.value; state.activePreset = -1; renderMain(); renderPresets(); };
     });
   </script>
 </body>
