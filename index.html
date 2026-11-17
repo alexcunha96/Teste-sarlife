@@ -11,10 +11,13 @@
     h1 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; }
     p.subtitle { text-align: center; color: #9ca3af; font-size: 0.85rem; margin-bottom: 20px; }
     .panel { background-color: #111827; border-radius: 18px; padding: 20px; border: 1px solid #1f2937; }
+    
+    /* Círculo com fundo branco para camuflar o fundo das imagens PNG */
     .avatar-stage {
       width: 180px; height: 180px; margin: 0 auto 18px auto; border-radius: 50%;
-      background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
+      background: #ffffff; border: 3px solid #38bdf8; position: relative; overflow: hidden;
     }
+    
     .avatar-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
     .gender-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: #07090e; padding: 4px; border-radius: 10px; }
     .gender-btn { padding: 9px; border: none; border-radius: 8px; background: transparent; color: #9ca3af; font-weight: bold; cursor: pointer; }
@@ -48,19 +51,19 @@
   </div>
 
   <script>
-    // LISTA DE ASSETS: Coloca aqui exatamente os nomes dos teus ficheiros (sem o .png)
+    // LISTA DE ASSETS: Substitui estes nomes pelos nomes exatos dos teus ficheiros nas pastas do GitHub (sem o .png)
     const assets = {
       masculino: {
-        caras: ["rostos_001"], 
-        olhos: ["olhos_001"],
-        cabelos: ["barbas_bigodes_005"], 
-        barbas: ["none", "barba_01"],
-        oculos: ["none"]
+        caras: ["rostos_001", "rostos_002"], 
+        olhos: ["olhos_001", "olhos_002"],
+        cabelos: ["barbas_bigodes_005", "barbas_bigodes_006", "barbas_bigodes_007", "barbas_bigodes_008"], 
+        barbas: ["none", "barba_01", "barba_02"],
+        oculos: ["none", "acessorios_001"]
       },
       feminino: {
         caras: ["rostos_f_001"],
         olhos: ["olhos_f_001"],
-        cabelos: ["cabelos_f_001"],
+        cabelos: ["cabelos_f_001", "cabelos_f_002"],
         oculos: ["none"]
       }
     };
