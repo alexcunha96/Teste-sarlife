@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Modular 3D Studio</title>
+  <title>StarLife - Teste Visual</title>
   <style>
     :root {
       --bg-color: #080c14;
@@ -17,12 +17,11 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    .container { width: 100%; max-width: 520px; }
+    .container { width: 100%; max-width: 480px; }
 
-    h1 { text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
-    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
+    h1 { text-align: center; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 20px; }
 
-    /* Palco de Composição em Camadas (As peças encaixam umas sobre as outras) */
     .panel {
       background-color: var(--panel-bg);
       border-radius: 18px;
@@ -32,211 +31,63 @@
     }
 
     .avatar-stage {
-      width: 190px;
-      height: 190px;
+      width: 180px;
+      height: 180px;
       margin: 0 auto 18px auto;
       border-radius: 50%;
       background: radial-gradient(circle at 50% 35%, #1e293b 0%, #070a11 85%);
       border: 3px solid var(--accent);
       box-shadow: 0 0 25px var(--accent-glow);
-      position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Cada camada ocupa 100% do espaço e sobrepõe-se perfeitamente */
-    .avatar-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .avatar-stage img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      pointer-events: none;
+      object-fit: cover;
     }
 
-    .gender-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 16px;
-      background: #090d16;
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid var(--panel-border);
-    }
-
-    .gender-btn {
-      padding: 9px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text-muted);
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .gender-btn.active { background: var(--accent); color: #090d16; }
-
-    .grid-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .control-group { margin-bottom: 12px; }
-    .control-group.full { grid-column: span 2; }
-    .control-group label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.6px; }
+    .control-group { margin-bottom: 14px; }
+    .control-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
     
     select {
-      width: 100%; padding: 10px; border-radius: 9px; border: 1px solid var(--panel-border);
-      background-color: #090d16; color: var(--text-main); font-size: 0.88rem; outline: none;
+      width: 100%; padding: 11px; border-radius: 10px; border: 1px solid var(--panel-border);
+      background-color: #07090e; color: var(--text-main); font-size: 0.95rem; outline: none;
     }
-    select:focus { border-color: var(--accent); }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>Personalizar Avatar</h1>
-    <p class="subtitle">Sistema Modular 3D Studio</p>
+    <h1>⭐ StarLife</h1>
+    <p class="subtitle">Teste de Visualização de Avatares</p>
 
     <div class="panel">
-      <!-- Palco onde as camadas de imagem se sobrepõem perfeitamente -->
-      <div class="avatar-stage" id="avatarStage">
-        <!-- Camada 1: Base (Rosto + Tom de Pele + Camisa) -->
-        <img id="layerBase" class="avatar-layer" src="" alt="Base">
-        <!-- Camada 2: Olhos e Sobrancelhas -->
-        <img id="layerEyes" class="avatar-layer" src="" alt="Olhos">
-        <!-- Camada 3: Penteado -->
-        <img id="layerHair" class="avatar-layer" src="" alt="Cabelo">
-        <!-- Camada 4: Barba / Maquilhagem -->
-        <img id="layerDetail" class="avatar-layer" src="" alt="Detalhe">
-        <!-- Camada 5: Acessórios (Óculos) -->
-        <img id="layerAccessory" class="avatar-layer" src="" alt="Acessório">
+      <!-- O círculo onde o avatar vai aparecer -->
+      <div class="avatar-stage">
+        <img id="avatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Avatar do Jogo">
       </div>
 
-      <div class="gender-tabs">
-        <button class="gender-btn active" data-gender="male">Homem</button>
-        <button class="gender-btn" data-gender="female">Mulher</button>
-      </div>
-
-      <div class="grid-controls">
-        <div class="control-group full">
-          <label>Tom de Pele / Base</label>
-          <select id="baseSelect">
-            <option value="skin_light">Pele Clara</option>
-            <option value="skin_warm">Pele Média / Quente</option>
-            <option value="skin_olive">Pele Oliva</option>
-            <option value="skin_brown">Pele Castanha</option>
-            <option value="skin_dark">Pele Escura</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Penteado</label>
-          <select id="hairSelect">
-            <option value="hair_none">Careca / Sem Cabelo</option>
-            <option value="hair_short">Curto / Fade</option>
-            <option value="hair_waves">Ondulado / Longo</option>
-            <option value="hair_curly">Crespo / Volumoso</option>
-            <option value="hair_bun">Coque / Apanhado</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label id="detailLabel">Barba / Detalhe</label>
-          <select id="detailSelect">
-            <option value="det_none">Nenhum</option>
-            <option value="det_stubble">Por Fazer</option>
-            <option value="det_full">Barba Fechada</option>
-            <option value="det_goatee">Cavanhaque</option>
-          </select>
-        </div>
-
-        <div class="control-group full">
-          <label>Acessórios / Óculos</label>
-          <select id="accessorySelect">
-            <option value="acc_none">Sem Óculos</option>
-            <option value="acc_round">Óculos Redondos</option>
-            <option value="acc_exec">Armação Executiva</option>
-            <option value="acc_shades">Óculos Escuros</option>
-          </select>
-        </div>
+      <div class="control-group">
+        <label>Escolher Estilo / Personagem de Teste</label>
+        <select id="avatarSelect">
+          <option value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400">Estilo Feminino 1</option>
+          <option value="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400">Estilo Masculino 1</option>
+          <option value="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400">Estilo Feminino 2</option>
+          <option value="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400">Estilo Masculino 2</option>
+        </select>
       </div>
     </div>
   </div>
 
   <script>
-    // Configuração do Estado Atual
-    let state = {
-      gender: "male",
-      base: "skin_light",
-      eyes: "eyes_standard",
-      hair: "hair_short",
-      detail: "det_full",
-      accessory: "acc_none"
+    // Código simples para mudar a imagem quando selecionas outra opção no menu
+    document.getElementById("avatarSelect").onchange = (e) => {
+      document.getElementById("avatarImg").src = e.target.value;
     };
-
-    // Caminho onde vais guardar os recortes transparentes (PNG/WebP) das tuas peças modulares
-    const ASSET_PATH = "assets/modules/";
-
-    function updateAvatar() {
-      // Atualiza os caminhos das imagens para cada camada individual.
-      // NOTA: Certifica-te de que os teus ficheiros PNG transparentes na pasta seguem esta convenção de nomes!
-      
-      document.getElementById("layerBase").src = `${ASSET_PATH}${state.gender}_${state.base}.png`;
-      document.getElementById("layerEyes").src = `${ASSET_PATH}${state.gender}_eyes.png`;
-      document.getElementById("layerHair").src = `${ASSET_PATH}${state.hair}.png`;
-      document.getElementById("layerDetail").src = `${ASSET_PATH}${state.gender}_${state.detail}.png`;
-      
-      const accImg = document.getElementById("layerAccessory");
-      if (state.accessory === "acc_none") {
-        accImg.src = "";
-      } else {
-        accImg.src = `${ASSET_PATH}${state.accessory}.png`;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      updateAvatar();
-
-      // Alternar Homem / Mulher
-      document.querySelectorAll(".gender-btn").forEach(btn => {
-        btn.onclick = () => {
-          const gender = btn.dataset.gender;
-          state.gender = gender;
-          
-          document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
-          
-          // Ajustar rótulos de detalhes consoante o género
-          const detailLbl = document.getElementById("detailLabel");
-          const detailSel = document.getElementById("detailSelect");
-          if (gender === "female") {
-            detailLbl.textContent = "Maquilhagem / Rosto";
-            detailSel.innerHTML = `
-              <option value="det_none">Natural</option>
-              <option value="det_makeup1">Glam Suave</option>
-              <option value="det_makeup2">Batom Vermelho</option>
-            `;
-            state.detail = "det_none";
-          } else {
-            detailLbl.textContent = "Barba / Detalhe";
-            detailSel.innerHTML = `
-              <option value="det_none">Nenhum</option>
-              <option value="det_stubble">Por Fazer</option>
-              <option value="det_full">Barba Fechada</option>
-              <option value="det_goatee">Cavanhaque</option>
-            `;
-            state.detail = "det_full";
-          }
-          
-          updateAvatar();
-        };
-      });
-
-      // Ouvintes para os seletores de customização
-      document.getElementById("baseSelect").onchange = (e) => { state.base = e.target.value; updateAvatar(); };
-      document.getElementById("hairSelect").onchange = (e) => { state.hair = e.target.value; updateAvatar(); };
-      document.getElementById("detailSelect").onchange = (e) => { state.detail = e.target.value; updateAvatar(); };
-      document.getElementById("accessorySelect").onchange = (e) => { state.accessory = e.target.value; updateAvatar(); };
-    });
   </script>
 </body>
 </html>
