@@ -39,7 +39,7 @@
       border: 3px solid var(--accent);
       box-shadow: 0 0 25px var(--accent-glow);
       position: relative;
-      overflow: hidden;
+      overflow: hidden; /* Corta tudo o que sair fora do círculo perfeito */
     }
 
     .avatar-layer {
@@ -48,8 +48,14 @@
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover; /* Ajusta a imagem para preencher o espaço sem distorcer */
+      mix-blend-mode: multiply; /* Tenta eliminar o fundo branco automaticamente se as imagens forem JPG/PNG com branco */
       pointer-events: none;
+    }
+
+    /* Força a camada do rosto a ficar sem o efeito de mistura para manter as cores reais */
+    #layerBase {
+      mix-blend-mode: normal;
     }
 
     .gender-tabs {
@@ -130,27 +136,24 @@
         <button class="gender-btn" data-gender="feminino">Mulher</button>
       </div>
 
-      <div class="controls-grid" id="controlsGrid">
-        <!-- Os controlos com setas são gerados automaticamente aqui em baixo -->
-      </div>
+      <div class="controls-grid" id="controlsGrid"></div>
     </div>
   </div>
 
   <script>
-    // Configura os teus itens aqui. Podes colocar os nomes reais dos ficheiros que tens nas pastas!
     const assets = {
       masculino: {
-        caras: ["rostos_001", "rostos_002", "rostos_003"], // Substitui pelos teus nomes reais
-        olhos: ["olhos_001", "olhos_002"],
-        cabelos: ["barbas_bigodes_005", "barbas_bigodes_006", "cabelos_001"], // Exemplo com os teus nomes misturados
-        barbas: ["none", "barba_01", "barba_02"],
-        oculos: ["none", "acessorios_001"]
+        caras: ["rostos_001", "rostos_002"], 
+        olhos: ["olhos_001"],
+        cabelos: ["barbas_bigodes_005", "barbas_bigodes_006"], 
+        barbas: ["none", "barba_01"],
+        oculos: ["none"]
       },
       feminino: {
-        caras: ["rostos_f_001", "rostos_f_002"],
+        caras: ["rostos_f_001"],
         olhos: ["olhos_f_001"],
-        cabelos: ["cabelos_f_001", "cabelos_f_002"],
-        oculos: ["none", "acessorios_f_001"]
+        cabelos: ["cabelos_f_001"],
+        oculos: ["none"]
       }
     };
 
@@ -172,7 +175,6 @@
       const barbaList = assets[g].barbas || ["none"];
       const oculosList = assets[g].oculos;
 
-      // Atualiza fontes das imagens
       document.getElementById("layerBase").src = caraList.length ? `assets/modules/${g}/caras/${caraList[state.caras]}.png` : "";
       document.getElementById("layerEyes").src = olhosList.length ? `assets/modules/${g}/olhos/${olhosList[state.olhos]}.png` : "";
       document.getElementById("layerHair").src = cabeloList.length ? `assets/modules/${g}/cabelos/${cabeloList[state.cabelos]}.png` : "";
@@ -241,9 +243,7 @@
         state.gender = btn.dataset.gender;
         document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
         
-        // Reset indexes ao mudar de género
         state.caras = 0; state.olhos = 0; state.cabelos = 0; state.barbas = 0; state.oculos = 0;
-        
         updateAvatar();
       };
     });
