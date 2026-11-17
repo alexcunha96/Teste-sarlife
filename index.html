@@ -51,30 +51,31 @@
   </div>
 
   <script>
-    // LISTA DE ASSETS: Substitui estes nomes pelos nomes exatos dos teus ficheiros nas pastas do GitHub (sem o .png)
+    // LISTA DE ASSETS: Atualizado para a pasta "rosto"
     const assets = {
       masculino: {
-        caras: ["rostos_001", "rostos_002"], 
+        rosto: ["teste"], // Põe aqui os nomes reais dos ficheiros que tens na pasta "rosto" (sem o .png)
         olhos: ["olhos_001", "olhos_002"],
         cabelos: ["barbas_bigodes_005", "barbas_bigodes_006", "barbas_bigodes_007", "barbas_bigodes_008"], 
         barbas: ["none", "barba_01", "barba_02"],
         oculos: ["none", "acessorios_001"]
       },
       feminino: {
-        caras: ["rostos_f_001"],
+        rosto: ["teste"], // Põe aqui os nomes reais dos ficheiros da pasta "rosto" de mulher
         olhos: ["olhos_f_001"],
         cabelos: ["cabelos_f_001", "cabelos_f_002"],
         oculos: ["none"]
       }
     };
 
-    let state = { gender: "masculino", caras: 0, olhos: 0, cabelos: 0, barbas: 0, oculos: 0 };
+    let state = { gender: "masculino", rosto: 0, olhos: 0, cabelos: 0, barbas: 0, oculos: 0 };
 
     function updateAvatar() {
       const g = state.gender;
       const c = assets[g];
 
-      document.getElementById("layerBase").src = c.caras.length ? `assets/modules/${g}/caras/${c.caras[state.caras]}.png` : "";
+      // Atualizado para procurar na pasta "rosto"
+      document.getElementById("layerBase").src = c.rosto.length ? `assets/modules/${g}/rosto/${c.rosto[state.rosto]}.png` : "";
       document.getElementById("layerEyes").src = c.olhos.length ? `assets/modules/${g}/olhos/${c.olhos[state.olhos]}.png` : "";
       document.getElementById("layerHair").src = c.cabelos.length ? `assets/modules/${g}/cabelos/${c.cabelos[state.cabelos]}.png` : "";
       
@@ -93,7 +94,7 @@
       container.innerHTML = "";
 
       const categories = [
-        { key: "caras", label: "Cara" },
+        { key: "rosto", label: "Rosto" },
         { key: "olhos", label: "Olhos" },
         { key: "cabelos", label: "Cabelo" }
       ];
@@ -130,7 +131,7 @@
       btn.onclick = () => {
         state.gender = btn.dataset.gender;
         document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
-        state.caras = 0; state.olhos = 0; state.cabelos = 0; state.barbas = 0; state.oculos = 0;
+        state.rosto = 0; state.olhos = 0; state.cabelos = 0; state.barbas = 0; state.oculos = 0;
         updateAvatar();
       };
     });
