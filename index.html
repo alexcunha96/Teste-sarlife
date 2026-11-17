@@ -12,21 +12,17 @@
     p.subtitle { text-align: center; color: #9ca3af; font-size: 0.85rem; margin-bottom: 20px; }
     .panel { background-color: #111827; border-radius: 18px; padding: 20px; border: 1px solid #1f2937; }
     
-    /* Círculo do avatar */
+    /* Círculo do avatar que agora usa a tela Canvas centralizada */
     .avatar-stage {
       width: 180px; height: 180px; margin: 0 auto 18px auto; border-radius: 50%;
       background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
     
-    /* Força todas as camadas a ocuparem exatamente o mesmo espaço exato e centralizado */
-    .avatar-layer { 
-      position: absolute; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      object-fit: contain; /* Mantém a proporção sem deformar */
-      pointer-events: none; 
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .gender-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: #07090e; padding: 4px; border-radius: 10px; }
@@ -46,12 +42,8 @@
     <p class="subtitle">Criador de Personagens</p>
     <div class="panel">
       <div class="avatar-stage">
-        <!-- A ordem das camadas garante que o Rosto fica no fundo e os acessórios/cabelo por cima -->
-        <img id="layerBase" class="avatar-layer" src="" alt="Rosto">
-        <img id="layerEyes" class="avatar-layer" src="" alt="Olhos">
-        <img id="layerHair" class="avatar-layer" src="" alt="Cabelo">
-        <img id="layerBeard" class="avatar-layer" src="" alt="Barba">
-        <img id="layerGlasses" class="avatar-layer" src="" alt="Óculos">
+        <!-- Usamos um Canvas para unificar e alinhar perfeitamente todas as camadas -->
+        <canvas id="avatarCanvas" width="500" height="500"></canvas>
       </div>
       <div class="gender-tabs">
         <button class="gender-btn active" data-gender="masculino">Homem</button>
@@ -88,30 +80,60 @@
 
     let state = { gender: "masculino", rosto: 0, olhos: 0, cabelos: 0, barbas: 0, oculos: 0 };
 
+    const canvas = document.getElementById("avatarCanvas");
+    const ctx = canvas.getContext("2d");
+
     function updateAvatar() {
       const g = state.gender;
       const c = assets[g];
 
+      // Limpa a tela
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Lista de imagens a carregar por ordem de camadas (Fundo -> Frente)
+      const layersToDraw = [];
+
+      // 1. Rosto
       const rostoVal = c.rosto[state.rosto];
-      document.getElementById("layerBase").src = rostoVal ? `assets/modules/${g}/rosto/${rostoVal}.png` : "";
+      if (rostoVal) layersToDraw.push(`assets/modules/${g}/rosto/${rostoVal}.png`);
 
+      // 2. Olhos
       const olhosVal = c.olhos[state.olhos];
-      document.getElementById("layerEyes").src = olhosVal ? `assets/modules/${g}/olhos/${olhosVal}.png` : "";
+      if (olhosVal) layersToDraw.push(`assets/modules/${g}/olhos/${olhosVal}.png`);
 
+      // 3. Cabelo
       const cabeloVal = c.cabelos[state.cabelos];
-      document.getElementById("layerHair").src = cabeloVal ? `assets/modules/${g}/cabelos/${cabeloVal}.png` : "";
-      
-      const beardImg = document.getElementById("layerBeard");
-      if (g === "feminino" || !c.barbas || c.barbas[state.barbas] === "none") {
-        beardImg.src = "";
-      } else {
-        beardImg.src = `assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`;
+      if (cabeloVal) layersToDraw.push(`assets/modules/${g}/cabelos/${cabeloVal}.png`);
+
+      // 4. Barba (só masculino)
+      if (g === "masculino" && c.barbas && c.barbas[state.barbas] && c.barbas[state.barbas] !== "none") {
+        layersToDraw.push(`assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`);
       }
 
+      // 5. Óculos
       const oculosVal = c.oculos[state.oculos];
-      document.getElementById("layerGlasses").src = (!oculosVal || oculosVal === "none") ? "" : `assets/modules/${g}/oculos/${oculosVal}.png`;
+      if (oculosVal && oculosVal !== "none") {
+        layersToDraw.push(`assets/modules/${g}/oculos/${oculosVal}.png`);
+      }
 
+      drawLayers(layersToDraw, 0);
       renderControls();
+    }
+
+    // Função para desenhar as imagens sequencialmente no canvas mantendo o alinhamento exato
+    function drawLayers(sources, index) {
+      if (index >= sources.length) return;
+
+      const img = new Image();
+      img.src = sources[index];
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        drawLayers(sources, index + 1);
+      };
+      img.onerror = () => {
+        // Se falhar a carregar uma imagem, passa logo à seguinte para não bloquear
+        drawLayers(sources, index + 1);
+      };
     }
 
     function renderControls() {
