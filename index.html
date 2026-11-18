@@ -12,167 +12,99 @@
     p.subtitle { text-align: center; color: #9ca3af; font-size: 0.85rem; margin-bottom: 20px; }
     .panel { background-color: #111827; border-radius: 18px; padding: 20px; border: 1px solid #1f2937; }
     
-    /* Círculo do avatar que agora usa a tela Canvas centralizada */
+    /* Círculo do avatar completo */
     .avatar-stage {
       width: 180px; height: 180px; margin: 0 auto 18px auto; border-radius: 50%;
       background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
     
-    canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+    .avatar-img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
     }
 
     .gender-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: #07090e; padding: 4px; border-radius: 10px; }
     .gender-btn { padding: 9px; border: none; border-radius: 8px; background: transparent; color: #9ca3af; font-weight: bold; cursor: pointer; }
     .gender-btn.active { background: #38bdf8; color: #090d16; }
+    
     .controls-grid { display: flex; flex-direction: column; gap: 10px; }
-    .control-row { display: flex; align-items: center; justify-content: space-between; background: #07090e; border: 1px solid #1f2937; padding: 8px 12px; border-radius: 10px; }
-    .control-label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; font-weight: bold; }
-    .arrow-group { display: flex; align-items: center; gap: 10px; }
-    .arrow-btn { background: #1f2937; color: #fff; border: none; width: 32px; height: 32px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .value-display { font-size: 0.85rem; font-weight: bold; width: 90px; text-align: center; color: #38bdf8; }
+    .control-row { display: flex; align-items: center; justify-content: space-between; background: #07090e; border: 1px solid #1f2937; padding: 12px 16px; border-radius: 10px; }
+    .control-label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; font-weight: bold; }
+    .arrow-group { display: flex; align-items: center; gap: 12px; }
+    .arrow-btn { background: #1f2937; color: #fff; border: none; width: 36px; height: 36px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    .arrow-btn:active { background: #38bdf8; color: #090d16; }
+    .value-display { font-size: 0.95rem; font-weight: bold; width: 90px; text-align: center; color: #38bdf8; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>⭐ StarLife</h1>
-    <p class="subtitle">Criador de Personagens</p>
+    <p class="subtitle">Escolhe a tua Aparência</p>
     <div class="panel">
       <div class="avatar-stage">
-        <!-- Usamos um Canvas para unificar e alinhar perfeitamente todas as camadas -->
-        <canvas id="avatarCanvas" width="500" height="500"></canvas>
+        <img id="avatarDisplay" class="avatar-img" src="" alt="Avatar">
       </div>
+      
       <div class="gender-tabs">
         <button class="gender-btn active" data-gender="masculino">Homem</button>
         <button class="gender-btn" data-gender="feminino">Mulher</button>
       </div>
-      <div class="controls-grid" id="controlsGrid"></div>
+
+      <div class="controls-grid">
+        <div class="control-row">
+          <span class="control-label">Avatar</span>
+          <div class="arrow-group">
+            <button class="arrow-btn" onclick="changeAvatar(-1)">◀</button>
+            <span class="value-display" id="avatarIndexDisplay">#1</span>
+            <button class="arrow-btn" onclick="changeAvatar(1)">▶</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    function generateList(prefix, count, hasNone = false) {
-      let list = hasNone ? ["none"] : [];
-      for (let i = 1; i <= count; i++) {
-        list.push(`${prefix}${i}`);
-      }
-      return list;
-    }
-
     const assets = {
       masculino: {
-        rosto: generateList("Rosto_masculino", 8),
-        olhos: generateList("Olhos_masculino", 8),
-        cabelos: generateList("Cabelo_masculino", 25),
-        barbas: generateList("Barba_masculino", 14, true),
-        oculos: generateList("Óculos_masculino", 9, true)
+        total: 5, // 5 avatares masculinos (Avatar_masculino_1 até 5)
+        prefix: "Avatar_masculino_",
+        folder: "masculino"
       },
       feminino: {
-        rosto: generateList("Rosto_feminino", 11),
-        olhos: generateList("Olhos_femininos", 8),
-        cabelos: generateList("Cabelo_feminino", 13),
-        oculos: generateList("Óculos_feminino", 9, true)
+        total: 2, // 2 avatares femininos (Avatar_feminino_1 até 2)
+        prefix: "Avatar_feminino_",
+        folder: "feminino"
       }
     };
 
-    let state = { gender: "masculino", rosto: 0, olhos: 0, cabelos: 0, barbas: 0, oculos: 0 };
-
-    const canvas = document.getElementById("avatarCanvas");
-    const ctx = canvas.getContext("2d");
+    let state = {
+      gender: "masculino",
+      currentIndex: 0
+    };
 
     function updateAvatar() {
       const g = state.gender;
-      const c = assets[g];
-
-      // Limpa a tela
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Lista de imagens a carregar por ordem de camadas (Fundo -> Frente)
-      const layersToDraw = [];
-
-      // 1. Rosto
-      const rostoVal = c.rosto[state.rosto];
-      if (rostoVal) layersToDraw.push(`assets/modules/${g}/rosto/${rostoVal}.png`);
-
-      // 2. Olhos
-      const olhosVal = c.olhos[state.olhos];
-      if (olhosVal) layersToDraw.push(`assets/modules/${g}/olhos/${olhosVal}.png`);
-
-      // 3. Cabelo
-      const cabeloVal = c.cabelos[state.cabelos];
-      if (cabeloVal) layersToDraw.push(`assets/modules/${g}/cabelos/${cabeloVal}.png`);
-
-      // 4. Barba (só masculino)
-      if (g === "masculino" && c.barbas && c.barbas[state.barbas] && c.barbas[state.barbas] !== "none") {
-        layersToDraw.push(`assets/modules/${g}/barbas/${c.barbas[state.barbas]}.png`);
-      }
-
-      // 5. Óculos
-      const oculosVal = c.oculos[state.oculos];
-      if (oculosVal && oculosVal !== "none") {
-        layersToDraw.push(`assets/modules/${g}/oculos/${oculosVal}.png`);
-      }
-
-      drawLayers(layersToDraw, 0);
-      renderControls();
+      const data = assets[g];
+      
+      const filename = `${data.prefix}${state.currentIndex + 1}.png`;
+      document.getElementById("avatarDisplay").src = `assets/modules/${data.folder}/avatars/${filename}`;
+      document.getElementById("avatarIndexDisplay").textContent = `#${state.currentIndex + 1}`;
     }
 
-    // Função para desenhar as imagens sequencialmente no canvas mantendo o alinhamento exato
-    function drawLayers(sources, index) {
-      if (index >= sources.length) return;
-
-      const img = new Image();
-      img.src = sources[index];
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        drawLayers(sources, index + 1);
-      };
-      img.onerror = () => {
-        // Se falhar a carregar uma imagem, passa logo à seguinte para não bloquear
-        drawLayers(sources, index + 1);
-      };
-    }
-
-    function renderControls() {
+    window.changeAvatar = function(direction) {
       const g = state.gender;
-      const container = document.getElementById("controlsGrid");
-      container.innerHTML = "";
-
-      const categories = [
-        { key: "rosto", label: "Rosto" },
-        { key: "olhos", label: "Olhos" },
-        { key: "cabelos", label: "Cabelo" }
-      ];
-      if (g === "masculino") categories.push({ key: "barbas", label: "Barba" });
-      categories.push({ key: "oculos", label: "Óculos" });
-
-      categories.forEach(cat => {
-        const list = assets[g][cat.key] || ["none"];
-        const idx = state[cat.key];
-        const itemName = list[idx];
-        const displayName = itemName === "none" ? "Nenhum" : `#${idx + (list.includes("none") ? 0 : 1)}`;
-
-        const row = document.createElement("div");
-        row.className = "control-row";
-        row.innerHTML = `
-          <span class="control-label">${cat.label}</span>
-          <div class="arrow-group">
-            <button class="arrow-btn" onclick="changeItem('${cat.key}', -1)">◀</button>
-            <span class="value-display">${displayName}</span>
-            <button class="arrow-btn" onclick="changeItem('${cat.key}', 1)">▶</button>
-          </div>`;
-        container.appendChild(row);
-      });
-    }
-
-    window.changeItem = function(cat, dir) {
-      const list = assets[state.gender][cat] || ["none"];
-      state[cat] += dir;
-      if (state[cat] < 0) state[cat] = list.length - 1;
-      if (state[cat] >= list.length) state[cat] = 0;
+      const total = assets[g].total;
+      
+      state.currentIndex += direction;
+      
+      if (state.currentIndex < 0) {
+        state.currentIndex = total - 1;
+      } else if (state.currentIndex >= total) {
+        state.currentIndex = 0;
+      }
+      
       updateAvatar();
     };
 
@@ -180,7 +112,7 @@
       btn.onclick = () => {
         state.gender = btn.dataset.gender;
         document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
-        state.rosto = 0; state.olhos = 0; state.cabelos = 0; state.barbas = 0; state.oculos = 0;
+        state.currentIndex = 0;
         updateAvatar();
       };
     });
