@@ -181,8 +181,8 @@ button {
 }
 
 .header-avatar {
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   border: 2px solid var(--accent-color);
   overflow: hidden;
@@ -202,23 +202,66 @@ button {
 }
 
 .avatar-stage-img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
+.avatar-overlay-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3px;
+}
+
+.avatar-top-strip {
+  height: 7px;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--hair-color, #3b281e);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+}
+
+.avatar-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.88);
+  border-top: 2px solid var(--outfit-color, #3b82f6);
+  color: #f8fafc;
+  font-size: 0.56rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 6px;
+}
+
+.avatar-tattoo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  display: inline-block;
+}
+
 .age-filter-bebe .avatar-stage-img {
-  filter: brightness(1.06) saturate(1.08);
-  transform: scale(1.04);
+  filter: brightness(1.08) saturate(1.12);
+  transform: scale(1.06);
 }
 
 .age-filter-crianca .avatar-stage-img {
-  filter: brightness(1.03) saturate(1.05);
+  filter: brightness(1.04) saturate(1.06);
 }
 
 .age-filter-adolescente .avatar-stage-img {
-  filter: contrast(1.03) saturate(1.06);
+  filter: contrast(1.04) saturate(1.08);
 }
 
 .age-filter-adulto .avatar-stage-img {
@@ -226,21 +269,7 @@ button {
 }
 
 .age-filter-idoso .avatar-stage-img {
-  filter: grayscale(0.55) contrast(0.95) brightness(0.98);
-}
-
-.avatar-custom-badge {
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.88);
-  color: #f8fafc;
-  font-size: 0.62rem;
-  padding: 1px 6px;
-  border-radius: 999px;
-  white-space: nowrap;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  filter: grayscale(0.75) contrast(0.95) brightness(0.96);
 }
 
 .avatar-editor-grid {
