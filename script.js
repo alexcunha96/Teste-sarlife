@@ -4,7 +4,7 @@
    STARLIFE - MOTOR OFICIAL COMPLETO
 ========================================= */
 
-const SAVE_KEY = "starlife_v19_aging_custom_complete";
+const SAVE_KEY = "starlife_v20_overlay_stage_complete";
 
 let game = null;
 let initialFamily = [];
@@ -155,6 +155,16 @@ function getStageLabel(stage) {
   return labels[stage] || "Adulto";
 }
 
+function getFieldLabelPT(field) {
+  const map = {
+    hairStyle: "cabelo",
+    hairColor: "cor do cabelo",
+    outfit: "roupa",
+    tattoo: "tatuagem"
+  };
+  return map[field] || field;
+}
+
 function createDefaultAvatarCustomization(sex = "Masculino", age = 0) {
   return {
     hairStyle: sex === "Feminino" ? "long" : "short",
@@ -197,14 +207,17 @@ function getAgedAvatarImageSrc(person) {
 function renderPersonAvatarHTML(person, options = {}) {
   const age = Number(person.age) || 0;
   const stage = getLifeStage(age);
+  const stageLabel = getStageLabel(stage);
   const fallbackSrc = person.baseAvatarPath || person.avatarPath || "assets/modules/masculino/avatars/Avatar_masculino_1.png";
   const primarySrc = getAgedAvatarImageSrc(person);
   const custom = person.avatarCustom || createDefaultAvatarCustomization(person.sex, age);
-  const showBadge = options.showBadge !== false;
-  const tattooLabel = custom.tattoo && custom.tattoo !== "none" ? ` · ${custom.tattoo}` : "";
+  const showOverlay = options.showBadge !== false;
+  const hairColor = stage === "idoso" ? "#cbd5e1" : (custom.hairColor || "#3b281e");
+  const outfitColor = custom.outfitColor || "#3b82f6";
+  const hasTattoo = custom.tattoo && custom.tattoo !== "none";
 
   return `
-    <div class="avatar-stage-wrapper age-filter-${stage}" title="${escapeHTML(getStageLabel(stage))} (${age} anos)">
+    <div class="avatar-stage-wrapper age-filter-${stage}" style="--hair-color: ${escapeHTML(hairColor)}; --outfit-color: ${escapeHTML(outfitColor)};" title="${escapeHTML(stageLabel)} (${age} anos)">
       <img
         src="${escapeHTML(primarySrc)}"
         alt="${escapeHTML(person.name || "Avatar")}"
@@ -212,7 +225,15 @@ function renderPersonAvatarHTML(person, options = {}) {
         data-fallback="${escapeHTML(fallbackSrc)}"
         onerror="if (this.dataset.fallback && this.src !== this.dataset.fallback) { this.src = this.dataset.fallback; }"
       >
-      ${showBadge ? `<span class="avatar-custom-badge">${escapeHTML(getStageLabel(stage))}${escapeHTML(tattooLabel)}</span>` : ""}
+      ${showOverlay ? `
+        <div class="avatar-overlay-layer">
+          <div class="avatar-top-strip"></div>
+          <div class="avatar-bottom-bar">
+            <span>${escapeHTML(stageLabel)}</span>
+            ${hasTattoo ? '<span class="avatar-tattoo-dot" title="Tatuagem ativa"></span>' : ""}
+          </div>
+        </div>
+      ` : ""}
     </div>
   `;
 }
@@ -241,7 +262,7 @@ window.updatePlayerAvatarStyle = function(field, value) {
   }
 
   player.avatarCustom[field] = value;
-  addEvent(`Atualizaste o estilo do teu avatar (${field}). ✨`, "positive");
+  addEvent(`Atualizaste o estilo do teu avatar (${getFieldLabelPT(field)}). ✨`, "positive");
   saveGame();
   renderGame();
 };
@@ -1593,7 +1614,7 @@ function renderHome() {
   $("illnessValue").textContent = player.illness ? player.illness.name : "Nenhuma";
 
   if ($("headerAvatarContainer")) {
-    $("headerAvatarContainer").innerHTML = renderPersonAvatarHTML(player, { showBadge: false });
+    $("headerAvatarContainer").innerHTML = renderPersonAvatarHTML(player, { showBadge: true });
   }
 
   const primaryProp = game.properties.find(p => p.status === "primary");
