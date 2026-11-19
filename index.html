@@ -3,121 +3,301 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StarLife - Criador de Personagens</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #080c14; color: #f9fafb; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    .container { width: 100%; max-width: 480px; }
-    h1 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; }
-    p.subtitle { text-align: center; color: #9ca3af; font-size: 0.85rem; margin-bottom: 20px; }
-    .panel { background-color: #111827; border-radius: 18px; padding: 20px; border: 1px solid #1f2937; }
-    
-    /* Círculo do avatar completo */
-    .avatar-stage {
-      width: 180px; height: 180px; margin: 0 auto 18px auto; border-radius: 50%;
-      background: #1e293b; border: 3px solid #38bdf8; position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    
-    .avatar-img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-    }
-
-    .gender-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; background: #07090e; padding: 4px; border-radius: 10px; }
-    .gender-btn { padding: 9px; border: none; border-radius: 8px; background: transparent; color: #9ca3af; font-weight: bold; cursor: pointer; }
-    .gender-btn.active { background: #38bdf8; color: #090d16; }
-    
-    .controls-grid { display: flex; flex-direction: column; gap: 10px; }
-    .control-row { display: flex; align-items: center; justify-content: space-between; background: #07090e; border: 1px solid #1f2937; padding: 12px 16px; border-radius: 10px; }
-    .control-label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; font-weight: bold; }
-    .arrow-group { display: flex; align-items: center; gap: 12px; }
-    .arrow-btn { background: #1f2937; color: #fff; border: none; width: 36px; height: 36px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    .arrow-btn:active { background: #38bdf8; color: #090d16; }
-    .value-display { font-size: 0.95rem; font-weight: bold; width: 90px; text-align: center; color: #38bdf8; }
-  </style>
+  <title>StarLife</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>⭐ StarLife</h1>
-    <p class="subtitle">Escolhe a tua Aparência</p>
-    <div class="panel">
-      <div class="avatar-stage">
-        <img id="avatarDisplay" class="avatar-img" src="" alt="Avatar">
-      </div>
-      
-      <div class="gender-tabs">
-        <button class="gender-btn active" data-gender="masculino">Homem</button>
-        <button class="gender-btn" data-gender="feminino">Mulher</button>
-      </div>
 
-      <div class="controls-grid">
-        <div class="control-row">
-          <span class="control-label">Avatar</span>
-          <div class="arrow-group">
-            <button class="arrow-btn" onclick="changeAvatar(-1)">◀</button>
-            <span class="value-display" id="avatarIndexDisplay">#1</span>
-            <button class="arrow-btn" onclick="changeAvatar(1)">▶</button>
+  <!-- Ecrã Inicial / Criação de Personagem -->
+  <div id="setupScreen" class="screen">
+    <div class="panel setup-panel">
+      <h1>⭐ StarLife</h1>
+      <p>A tua vida. As tuas escolhas.</p>
+
+      <div id="startForm">
+        <!-- Pré-visualização e Seleção do Avatar Completo -->
+        <div class="panel" style="margin-top: 10px; background: rgba(0,0,0,0.22); text-align: center;">
+          <h3>🎨 Escolher Avatar</h3>
+
+          <div class="avatar-stage-circle">
+            <img id="setupAvatarImg" src="assets/modules/masculino/avatars/Avatar_masculino_1.png" alt="Avatar">
+          </div>
+
+          <div class="avatar-nav-row">
+            <button type="button" class="avatar-arrow-btn" onclick="changeSetupAvatar(-1)">◀</button>
+            <span id="setupAvatarIndex" class="avatar-index-label">#1</span>
+            <button type="button" class="avatar-arrow-btn" onclick="changeSetupAvatar(1)">▶</button>
+          </div>
+
+          <!-- Género logo abaixo das setas do avatar -->
+          <div class="input-group" style="margin-top: 12px; text-align: left;">
+            <label>Género</label>
+            <select id="playerSex" onchange="onSetupGenderChange()">
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+            </select>
           </div>
         </div>
+
+        <div class="input-group">
+          <label>Nome <small id="nameHint" class="muted">(Ex: João)</small></label>
+          <input type="text" id="playerName" placeholder="Escreve o teu nome" value="" required>
+        </div>
+        <div class="input-group">
+          <label>Apelido</label>
+          <input type="text" id="playerSurname" placeholder="Escreve o teu apelido" value="" required>
+        </div>
+
+        <!-- Seletor Global de Países -->
+        <div class="input-group">
+          <label>País</label>
+          <select id="playerCountrySelect" onchange="onCountryChange()"></select>
+        </div>
+        <div class="input-group" id="customCountryGroup" style="display:none;">
+          <label>Outro País</label>
+          <input type="text" id="playerCountryCustom" placeholder="Nome do país">
+        </div>
+
+        <!-- Seletor de Cidades -->
+        <div class="input-group">
+          <label>Cidade</label>
+          <select id="playerCitySelect" onchange="onCitySelectChange()"></select>
+        </div>
+        <div class="input-group" id="customCityGroup" style="display:none;">
+          <label>Outra Cidade</label>
+          <input type="text" id="playerCityCustom" placeholder="Nome da cidade">
+        </div>
+
+        <!-- Secção para Adicionar Família Manualmente -->
+        <div class="panel" style="margin-top: 15px; background: rgba(0,0,0,0.18);">
+          <h3>👨‍👩‍👧 Adicionar Familiar (Opcional)</h3>
+          <div class="input-group">
+            <label>Nome do Familiar</label>
+            <input type="text" id="famName" placeholder="Ex: Maria">
+          </div>
+          <div class="input-group">
+            <label>Parentesco</label>
+            <select id="famRelation">
+              <option value="Mãe">Mãe</option>
+              <option value="Pai">Pai</option>
+              <option value="Irmão/ã">Irmão/ã</option>
+              <option value="Avó">Avó</option>
+              <option value="Avô">Avô</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Idade</label>
+            <input type="number" id="famAge" value="30" min="0" max="120">
+          </div>
+          <div class="input-group">
+            <label>Estado Civil</label>
+            <select id="famMaritalStatus">
+              <option value="Solteiro/a">Solteiro/a</option>
+              <option value="Casado/a">Casado/a</option>
+            </select>
+          </div>
+          <button type="button" id="addFamilyMemberBtn" class="secondary-btn full-width">+ Adicionar à Lista</button>
+
+          <div id="setupFamilyList" style="margin-top: 10px;" class="people-list"></div>
+        </div>
+
+        <button type="button" id="startGameBtn" class="primary-btn full-width" style="margin-top: 15px;">Nova Vida</button>
+      </div>
+
+      <div id="continuePanel" class="hidden" style="margin-top: 15px;">
+        <button id="continueGameBtn" class="secondary-btn full-width">Continuar Jogo</button>
+        <button id="deleteSaveBtn" class="danger-btn full-width" style="margin-top: 8px;">Apagar Jogo Guardado</button>
       </div>
     </div>
   </div>
 
-  <script>
-    const assets = {
-      masculino: {
-        total: 5, // 5 avatares masculinos (Avatar_masculino_1 até 5)
-        prefix: "Avatar_masculino_",
-        folder: "masculino"
-      },
-      feminino: {
-        total: 2, // 2 avatares femininos (Avatar_feminino_1 até 2)
-        prefix: "Avatar_feminino_",
-        folder: "feminino"
-      }
-    };
+  <!-- Ecrã Principal do Jogo -->
+  <div id="gameScreen" class="screen hidden">
+    <header class="game-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div id="headerAvatarContainer" class="header-avatar"></div>
+        <div class="player-info-main">
+          <h2 id="homePlayerName">Nome</h2>
+          <p id="homePlayerLocation">Localização</p>
+        </div>
+      </div>
+      <div class="age-display">
+        <span>Idade: <strong id="homeAge">0</strong></span>
+        <button id="advanceYearBtn" class="primary-btn">+ 1 Ano</button>
+      </div>
+    </header>
 
-    let state = {
-      gender: "masculino",
-      currentIndex: 0
-    };
+    <main class="game-body">
+      <!-- Tab: Início -->
+      <section id="homeTab" class="tab-content">
+        <div class="panel">
+          <h3>Estatísticas</h3>
+          <div class="stat-bar">
+            <span>Saúde</span>
+            <div class="bar"><div id="healthBar" class="fill"></div></div>
+            <strong id="healthValue">100%</strong>
+          </div>
+          <div class="stat-bar">
+            <span>Felicidade</span>
+            <div class="bar"><div id="happinessBar" class="fill"></div></div>
+            <strong id="happinessValue">80%</strong>
+          </div>
+          <div class="info-row"><span>Fase da Vida</span><strong id="lifeStageValue">Bebé</strong></div>
+          <div class="info-row"><span>Morada Atual</span><strong id="housingSummary">Casa dos Pais</strong></div>
+          <div class="info-row"><span>Escolaridade</span><strong id="educationValue">Sem escolaridade</strong></div>
+          <div class="info-row"><span>Profissão</span><strong id="jobValue">Sem profissão</strong></div>
+          <div class="info-row"><span>Doença Atual</span><strong id="illnessValue" style="color: var(--danger-color);">Nenhuma</strong></div>
+        </div>
 
-    function updateAvatar() {
-      const g = state.gender;
-      const data = assets[g];
-      
-      const filename = `${data.prefix}${state.currentIndex + 1}.png`;
-      document.getElementById("avatarDisplay").src = `assets/modules/${data.folder}/avatars/${filename}`;
-      document.getElementById("avatarIndexDisplay").textContent = `#${state.currentIndex + 1}`;
-    }
+        <!-- Editor Rápido do Avatar -->
+        <div class="panel">
+          <h3>✂️ Editar Estilo do Avatar</h3>
+          <div id="avatarEditorContainer"></div>
+        </div>
 
-    window.changeAvatar = function(direction) {
-      const g = state.gender;
-      const total = assets[g].total;
-      
-      state.currentIndex += direction;
-      
-      if (state.currentIndex < 0) {
-        state.currentIndex = total - 1;
-      } else if (state.currentIndex >= total) {
-        state.currentIndex = 0;
-      }
-      
-      updateAvatar();
-    };
+        <div class="panel">
+          <h3>Acontecimentos Recentes</h3>
+          <div id="recentEvents" class="events-list"></div>
+        </div>
+      </section>
 
-    document.querySelectorAll(".gender-btn").forEach(btn => {
-      btn.onclick = () => {
-        state.gender = btn.dataset.gender;
-        document.querySelectorAll(".gender-btn").forEach(b => b.classList.toggle("active", b === btn));
-        state.currentIndex = 0;
-        updateAvatar();
-      };
-    });
+      <!-- Tab: Património -->
+      <section id="patrimonyTab" class="tab-content hidden">
+        <div class="panel">
+          <h2>💰 Finanças & Património</h2>
+          <div class="info-row"><span>Património Total</span><strong id="totalWealth">0 €</strong></div>
+          <div class="info-row"><span>Dinheiro Líquido</span><strong id="bankBalance">0 €</strong></div>
+          <div class="info-row"><span>Banco</span><strong id="currentBankName">Sem conta</strong></div>
+          <div class="info-row"><span>Salário Anual</span><strong id="annualSalary">0 €</strong></div>
+          <div class="info-row"><span>Dívidas / Crédito</span><strong id="debtValue">0 €</strong></div>
+        </div>
 
-    document.addEventListener("DOMContentLoaded", updateAvatar);
-  </script>
+        <div class="sub-nav">
+          <button class="sub-btn active" data-sub="subBank">🏦 Banco</button>
+          <button class="sub-btn" data-sub="subMyAssets">🏡 Meus Bens</button>
+        </div>
+
+        <div id="subBank" class="sub-content">
+          <div id="bankSectionContainer"></div>
+        </div>
+        <div id="subMyAssets" class="sub-content hidden">
+          <div id="myAssetsContainer"></div>
+        </div>
+      </section>
+
+      <!-- Tab: Carreira, Educação e Negócios -->
+      <section id="careerTab" class="tab-content hidden">
+        <div class="panel">
+          <h2>💼 Carreira, Educação & Negócios</h2>
+          <div class="info-row"><span>Profissão</span><strong id="careerJob">Nenhuma</strong></div>
+          <div class="info-row"><span>Salário anual</span><strong id="careerSalary">0 €</strong></div>
+          <div class="info-row"><span>Escolaridade</span><strong id="careerEducation">Sem escolaridade</strong></div>
+        </div>
+
+        <div class="sub-nav">
+          <button class="sub-btn active" data-sub="subJob">💼 Empregos</button>
+          <button class="sub-btn" data-sub="subSchool">📚 Escola / Univ.</button>
+          <button class="sub-btn" data-sub="subBusiness">🏢 Negócios</button>
+        </div>
+
+        <div id="subJob" class="sub-content">
+          <div class="panel">
+            <h3>💼 Oportunidades de Trabalho</h3>
+            <p class="muted">Procura emprego a partir dos 16 anos.</p>
+            <div id="jobOptions" class="button-list"></div>
+          </div>
+        </div>
+        <div id="subSchool" class="sub-content hidden">
+          <div id="schoolSectionContainer"></div>
+        </div>
+        <div id="subBusiness" class="sub-content hidden">
+          <div class="panel">
+            <h3>🏢 As Tuas Empresas</h3>
+            <button id="createBusinessBtn" class="primary-btn full-width" style="margin-bottom: 10px;">Criar Novo Negócio</button>
+            <div id="businessList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab: Loja -->
+      <section id="shopTab" class="tab-content hidden">
+        <div class="sub-nav">
+          <button class="sub-btn active" data-sub="shopHousing">🏡 Imobiliário</button>
+          <button class="sub-btn" data-sub="shopVehicles">🚗 Veículos & Cartas</button>
+        </div>
+
+        <div id="shopHousing" class="sub-content">
+          <div id="housingSectionContainer"></div>
+        </div>
+        <div id="shopVehicles" class="sub-content hidden">
+          <div id="vehiclesSectionContainer"></div>
+        </div>
+      </section>
+
+      <!-- Tab: Pessoas / Família -->
+      <section id="peopleTab" class="tab-content hidden">
+        <div class="panel">
+          <h2>👨‍👩‍👧 Família</h2>
+          <div id="peopleList" class="people-list"></div>
+        </div>
+        <div class="panel">
+          <h3>Árvore Genealógica</h3>
+          <div id="familyTree"><p class="muted">Árvore genealógica ativa.</p></div>
+        </div>
+      </section>
+
+      <!-- Tab: Atividades e Saúde -->
+      <section id="activitiesTab" class="tab-content hidden">
+        <div class="panel">
+          <h2>🏥 Centro Médico & Especialidades</h2>
+          <p class="muted">Acompanhamento clínico profissional e prevenção.</p>
+          <div class="button-list" style="margin-top: 12px;">
+            <button class="secondary-btn full-width" data-health="familyDoctor">👨‍⚕️ Médico de Família (Check-up)</button>
+            <button class="secondary-btn full-width" data-health="urgency">🚑 Urgências Hospitalares</button>
+            <button class="secondary-btn full-width" data-health="cardiology">❤️ Cardiologia</button>
+            <button class="secondary-btn full-width" data-health="orthopedics">🦴 Ortopedia & Fisioterapia</button>
+            <button class="secondary-btn full-width" data-health="psychiatry">🧠 Psiquiatria & Bem-estar</button>
+            <button class="secondary-btn full-width" data-health="oncology">🎗️ Oncologia (Rastreio e Tratamento)</button>
+          </div>
+        </div>
+        <div id="healthActionContainer"></div>
+      </section>
+    </main>
+
+    <!-- Navegação Inferior -->
+    <nav id="bottomNav" class="bottom-nav">
+      <button class="nav-btn active" data-tab="homeTab">🏠<span>Início</span></button>
+      <button class="nav-btn" data-tab="patrimonyTab">💰<span>Património</span></button>
+      <button class="nav-btn" data-tab="careerTab">💼<span>Carreira</span></button>
+      <button class="nav-btn" data-tab="shopTab">🛒<span>Loja</span></button>
+      <button class="nav-btn" data-tab="peopleTab">👨‍👩‍👧<span>Pessoas</span></button>
+      <button class="nav-btn" data-tab="activitiesTab">🏃<span>Atividades</span></button>
+    </nav>
+  </div>
+
+  <div id="customModal" class="modal-overlay hidden"></div>
+
+  <!-- Ecrã de Morte -->
+  <div id="deathScreen" class="screen hidden" style="justify-content: center; align-items: center; padding: 20px;">
+    <div class="panel" style="width: 100%; max-width: 440px; text-align: center; background: #142136; border: 2px solid #4a6b9c;">
+      <h2 style="font-size: 2.5rem; margin-bottom: 5px;">⚰️</h2>
+      <div style="background: #1d3150; padding: 25px; border-radius: 12px; border: 1px dashed #6085bd; margin: 15px 0;">
+        <h3 id="tombstoneName" style="font-size: 1.4rem; color: #f8fafc; margin-bottom: 8px;">Nome</h3>
+        <p id="tombstoneYears" class="muted" style="margin-bottom: 15px;">1990 - 2060 (70 anos)</p>
+        <p id="tombstoneQuote" style="font-style: italic; color: #cbd5e1; font-size: 1rem; line-height: 1.4;">"Aqui jaz alguém que viveu intensamente."</p>
+      </div>
+
+      <div style="text-align: left; margin: 15px 0;" id="deathReportStats"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px;">
+        <button id="newLifeBtn" class="primary-btn full-width">✨ Iniciar Nova Vida</button>
+        <button id="continueChildBtn" class="secondary-btn full-width hidden">👶 Continuar com Filho/a</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="script.js"></script>
 </body>
 </html>
