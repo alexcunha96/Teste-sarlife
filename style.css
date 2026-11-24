@@ -6,6 +6,8 @@
   --text-muted: #94a3b8;
   --accent-color: #3b82f6;
   --accent-hover: #2563eb;
+  --save-green: #22c55e;
+  --save-green-hover: #16a34a;
   --danger-color: #ef4444;
   --border-color: rgba(255, 255, 255, 0.14);
   --hair-color: #3b2618;
@@ -28,7 +30,6 @@ body {
   min-height: 100vh;
 }
 
-/* Garante que apenas o ecrã ativo aparece */
 .screen {
   width: 100%;
   min-height: 100vh;
@@ -120,6 +121,21 @@ button:active {
   background: var(--accent-hover);
 }
 
+.save-btn {
+  background: linear-gradient(180deg, #2bd467 0%, var(--save-green) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 13px 18px;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.save-btn:hover {
+  background: linear-gradient(180deg, #22c55e 0%, var(--save-green-hover) 100%);
+}
+
 .secondary-btn {
   background: #1e2d4a;
 }
@@ -130,21 +146,22 @@ button:active {
   color: #fca5a5;
 }
 
-/* Círculo do avatar no setup */
+/* Avatar no Setup */
 .avatar-stage-circle {
   position: relative;
-  width: 120px !important;
-  height: 120px !important;
-  max-width: 120px !important;
-  max-height: 120px !important;
+  width: 128px !important;
+  height: 128px !important;
+  max-width: 128px !important;
+  max-height: 128px !important;
   margin: 12px auto;
   border-radius: 50%;
   overflow: hidden !important;
   border: 3px solid var(--accent-color);
-  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  background: radial-gradient(circle at 35% 25%, #eff6ff 0%, #bfdbfe 75%, #93c5fd 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
 }
 
 .avatar-nav-row {
@@ -157,10 +174,10 @@ button:active {
 
 .avatar-index-label {
   font-weight: 700;
-  min-width: 40px;
+  min-width: 44px;
 }
 
-/* Cabeçalho do jogo */
+/* Cabeçalho do Jogo */
 .game-header {
   position: sticky;
   top: 0;
@@ -178,10 +195,10 @@ button:active {
 
 .header-avatar {
   position: relative;
-  width: 68px !important;
-  height: 68px !important;
-  max-width: 68px !important;
-  max-height: 68px !important;
+  width: 72px !important;
+  height: 72px !important;
+  max-width: 72px !important;
+  max-height: 72px !important;
   flex-shrink: 0;
 }
 
@@ -192,7 +209,7 @@ button:active {
   border-radius: 50%;
   overflow: hidden !important;
   border: 2.5px solid var(--accent-color);
-  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  background: radial-gradient(circle at 35% 25%, #eff6ff 0%, #bfdbfe 75%, #93c5fd 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,7 +244,7 @@ button:active {
   z-index: 7;
 }
 
-/* Força esconder imagens antigas por defeito, mesmo com estilos inline */
+/* Desativa PNGs antigos por padrão */
 #setupAvatarImg,
 .avatar-stage-circle img,
 .header-avatar img,
@@ -240,7 +257,6 @@ img.legacy-avatar-img {
   visibility: hidden !important;
 }
 
-/* Só mostra a imagem antiga quando o utilizador ativa o modo PNG */
 .show-legacy-mode img.legacy-avatar-img,
 .show-legacy-mode .avatar-stage-circle img,
 .show-legacy-mode .header-avatar img {
@@ -283,9 +299,11 @@ img.legacy-avatar-img {
 .age-display {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
+/* Corpo e Navegação */
 .game-body {
   flex: 1;
   width: 100%;
@@ -326,33 +344,6 @@ img.legacy-avatar-img {
 
 .info-row:last-child {
   border-bottom: none;
-}
-
-.avatar-editor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.color-picker-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.color-picker-inline input[type="color"] {
-  width: 44px;
-  height: 36px;
-  padding: 2px;
-  cursor: pointer;
-}
-
-.editor-actions-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
 }
 
 .events-list,
@@ -416,15 +407,125 @@ img.legacy-avatar-img {
   border-color: rgba(59, 130, 246, 0.5);
 }
 
+/* Modal Editar Avatar (estilo Appearance com setas laterais) */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
-  background: rgba(0, 0, 0, 0.65);
+  z-index: 60;
+  background: rgba(5, 10, 22, 0.84);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.appearance-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, #16223b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.appearance-header {
+  text-align: center;
+}
+
+.appearance-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+}
+
+.appearance-header p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.appearance-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.app-cat-btn {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  background: #1b2844;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-cat-btn.active {
+  background: var(--accent-color);
+  border-color: #93c5fd;
+  color: #fff;
+}
+
+.appearance-stage-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 52px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.side-arrow-btn {
+  width: 52px;
+  height: 68px;
+  border-radius: 14px;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.side-arrow-btn:hover {
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.appearance-portrait-box {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 35% 22%, #f8fafc 0%, #cbd5e1 68%, #94a3b8 100%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.appearance-option-label {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.appearance-extra-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
 }
 
 .toast {
@@ -441,7 +542,7 @@ img.legacy-avatar-img {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 50;
+  z-index: 80;
 }
 
 .toast.show {
