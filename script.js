@@ -200,7 +200,6 @@ let modalState = {
   draft: null
 };
 
-/* --- Motor 3D com Three.js --- */
 const threeViewers = new Map();
 
 function getEffectiveHairColor(person) {
@@ -225,17 +224,17 @@ function createAvatar3DGroup(person) {
 
   const skinMat = new THREE.MeshStandardMaterial({
     color: skinTone,
-    roughness: 0.55,
+    roughness: 0.5,
     metalness: 0.05
   });
   const outfitMat = new THREE.MeshStandardMaterial({
     color: outfitColor,
-    roughness: 0.65,
+    roughness: 0.6,
     metalness: 0.08
   });
   const hairMat = new THREE.MeshStandardMaterial({
     color: hairColor,
-    roughness: 0.5,
+    roughness: 0.45,
     metalness: 0.1
   });
   const eyeWhiteMat = new THREE.MeshStandardMaterial({
@@ -246,12 +245,7 @@ function createAvatar3DGroup(person) {
     color: eyeColor,
     roughness: 0.25
   });
-  const darkMat = new THREE.MeshStandardMaterial({
-    color: "#111827",
-    roughness: 0.5
-  });
 
-  // Escala por fase da vida
   const stageScale =
     stage.id === "bebe"
       ? 0.78
@@ -261,81 +255,74 @@ function createAvatar3DGroup(person) {
       ? 0.95
       : 1.0;
 
-  // Cabeça 3D
-  const headGeo = new THREE.SphereGeometry(0.68, 32, 32);
-  headGeo.scale(0.92, 1.06, 0.95);
+  const headGeo = new THREE.SphereGeometry(0.66, 32, 32);
+  headGeo.scale(0.92, 1.05, 0.95);
   const headMesh = new THREE.Mesh(headGeo, skinMat);
-  headMesh.position.set(0, 0.62, 0);
+  headMesh.position.set(0, 0.56, 0);
   root.add(headMesh);
 
-  // Orelhas
   const earGeo = new THREE.SphereGeometry(0.14, 16, 16);
   earGeo.scale(0.55, 1.0, 0.85);
   const leftEar = new THREE.Mesh(earGeo, skinMat);
-  leftEar.position.set(-0.63, 0.6, 0);
+  leftEar.position.set(-0.61, 0.54, 0);
   const rightEar = new THREE.Mesh(earGeo, skinMat);
-  rightEar.position.set(0.63, 0.6, 0);
+  rightEar.position.set(0.61, 0.54, 0);
   root.add(leftEar, rightEar);
 
-  // Olhos 3D (esclera + íris)
   const scleraGeo = new THREE.SphereGeometry(0.11, 16, 16);
   scleraGeo.scale(1.15, 0.85, 0.6);
   const irisGeo = new THREE.SphereGeometry(0.062, 14, 14);
   irisGeo.scale(1, 1, 0.65);
 
   const leftEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
-  leftEyeWhite.position.set(-0.23, 0.66, 0.58);
+  leftEyeWhite.position.set(-0.22, 0.6, 0.56);
   const rightEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
-  rightEyeWhite.position.set(0.23, 0.66, 0.58);
+  rightEyeWhite.position.set(0.22, 0.6, 0.56);
 
   const leftIris = new THREE.Mesh(irisGeo, irisMat);
-  leftIris.position.set(-0.23, 0.66, 0.62);
+  leftIris.position.set(-0.22, 0.6, 0.6);
   const rightIris = new THREE.Mesh(irisGeo, irisMat);
-  rightIris.position.set(0.23, 0.66, 0.62);
+  rightIris.position.set(0.22, 0.6, 0.6);
   root.add(leftEyeWhite, rightEyeWhite, leftIris, rightIris);
 
-  // Sobrancelhas 3D
-  const browGeo = new THREE.BoxGeometry(0.24, custom.browStyle === "thick" ? 0.08 : 0.05, 0.08);
+  const browGeo = new THREE.BoxGeometry(0.23, custom.browStyle === "thick" ? 0.075 : 0.048, 0.08);
   const leftBrow = new THREE.Mesh(browGeo, hairMat);
-  leftBrow.position.set(-0.23, 0.83, 0.58);
+  leftBrow.position.set(-0.22, 0.77, 0.56);
   leftBrow.rotation.z = custom.browStyle === "arch" ? 0.12 : 0;
 
   const rightBrow = new THREE.Mesh(browGeo, hairMat);
-  rightBrow.position.set(0.23, 0.83, 0.58);
+  rightBrow.position.set(0.22, 0.77, 0.56);
   rightBrow.rotation.z = custom.browStyle === "arch" ? -0.12 : 0;
   root.add(leftBrow, rightBrow);
 
-  // Nariz 3D
-  const noseGeo = new THREE.ConeGeometry(0.09, 0.2, 12);
+  const noseGeo = new THREE.ConeGeometry(0.085, 0.19, 12);
   const noseMesh = new THREE.Mesh(noseGeo, skinMat);
-  noseMesh.position.set(0, 0.57, 0.67);
+  noseMesh.position.set(0, 0.51, 0.65);
   noseMesh.rotation.x = Math.PI * 0.42;
   root.add(noseMesh);
 
-  // Boca 3D
-  const mouthGeo = new THREE.TorusGeometry(0.14, 0.032, 10, 20, Math.PI);
+  const mouthGeo = new THREE.TorusGeometry(0.13, 0.03, 10, 20, Math.PI);
   const mouthMat = new THREE.MeshStandardMaterial({ color: "#9b4d3f", roughness: 0.4 });
   const mouthMesh = new THREE.Mesh(mouthGeo, mouthMat);
-  mouthMesh.position.set(0, 0.37, 0.6);
+  mouthMesh.position.set(0, 0.32, 0.58);
   mouthMesh.rotation.x = Math.PI;
   root.add(mouthMesh);
 
-  // Barba / pelo facial (a partir dos 14 anos)
   if (Number(person.age) >= 14 && custom.facialHair && custom.facialHair !== "none") {
     if (custom.facialHair === "beard") {
-      const beardGeo = new THREE.SphereGeometry(0.67, 24, 24, 0, Math.PI * 2, Math.PI * 0.48, Math.PI * 0.52);
+      const beardGeo = new THREE.SphereGeometry(0.65, 24, 24, 0, Math.PI * 2, Math.PI * 0.48, Math.PI * 0.52);
       beardGeo.scale(0.93, 1.0, 0.96);
       const beardMesh = new THREE.Mesh(beardGeo, hairMat);
-      beardMesh.position.set(0, 0.58, 0.03);
+      beardMesh.position.set(0, 0.52, 0.03);
       root.add(beardMesh);
     } else if (custom.facialHair === "goatee") {
-      const goateeGeo = new THREE.ConeGeometry(0.16, 0.25, 14);
+      const goateeGeo = new THREE.ConeGeometry(0.15, 0.23, 14);
       const goateeMesh = new THREE.Mesh(goateeGeo, hairMat);
-      goateeMesh.position.set(0, 0.23, 0.6);
+      goateeMesh.position.set(0, 0.18, 0.58);
       goateeMesh.rotation.x = Math.PI;
       root.add(goateeMesh);
     } else if (custom.facialHair === "stubble") {
-      const stubbleGeo = new THREE.SphereGeometry(0.66, 20, 20, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45);
+      const stubbleGeo = new THREE.SphereGeometry(0.64, 20, 20, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45);
       const stubbleMat = new THREE.MeshStandardMaterial({
         color: hairColor,
         transparent: true,
@@ -343,82 +330,78 @@ function createAvatar3DGroup(person) {
         roughness: 0.8
       });
       const stubbleMesh = new THREE.Mesh(stubbleGeo, stubbleMat);
-      stubbleMesh.position.set(0, 0.59, 0.02);
+      stubbleMesh.position.set(0, 0.53, 0.02);
       root.add(stubbleMesh);
     }
   }
 
-  // Cabelo 3D
   if (stage.id === "bebe") {
-    const tuftGeo = new THREE.ConeGeometry(0.12, 0.22, 12);
+    const tuftGeo = new THREE.ConeGeometry(0.12, 0.2, 12);
     const tuft = new THREE.Mesh(tuftGeo, hairMat);
-    tuft.position.set(0, 1.38, 0.04);
+    tuft.position.set(0, 1.3, 0.04);
     root.add(tuft);
   } else if (custom.hairStyle === "long") {
-    const capGeo = new THREE.SphereGeometry(0.72, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65);
+    const capGeo = new THREE.SphereGeometry(0.7, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65);
     const capMesh = new THREE.Mesh(capGeo, hairMat);
-    capMesh.position.set(0, 0.66, -0.02);
+    capMesh.position.set(0, 0.6, -0.02);
 
-    const backGeo = new THREE.CylinderGeometry(0.56, 0.64, 1.35, 20);
+    const backGeo = new THREE.CylinderGeometry(0.54, 0.62, 1.25, 20);
     const backMesh = new THREE.Mesh(backGeo, hairMat);
-    backMesh.position.set(0, 0.12, -0.22);
+    backMesh.position.set(0, 0.08, -0.2);
     root.add(capMesh, backMesh);
   } else if (custom.hairStyle === "ponytail") {
-    const capGeo = new THREE.SphereGeometry(0.71, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.58);
+    const capGeo = new THREE.SphereGeometry(0.69, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.58);
     const capMesh = new THREE.Mesh(capGeo, hairMat);
-    capMesh.position.set(0, 0.66, 0);
+    capMesh.position.set(0, 0.6, 0);
 
-    const tailGeo = new THREE.ConeGeometry(0.24, 0.85, 16);
+    const tailGeo = new THREE.ConeGeometry(0.22, 0.78, 16);
     const tailMesh = new THREE.Mesh(tailGeo, hairMat);
-    tailMesh.position.set(0, 0.68, -0.78);
+    tailMesh.position.set(0, 0.62, -0.74);
     tailMesh.rotation.x = -Math.PI * 0.35;
     root.add(capMesh, tailMesh);
   } else if (custom.hairStyle === "buzz") {
-    const buzzGeo = new THREE.SphereGeometry(0.695, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
+    const buzzGeo = new THREE.SphereGeometry(0.675, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const buzzMesh = new THREE.Mesh(buzzGeo, hairMat);
-    buzzMesh.position.set(0, 0.64, 0);
+    buzzMesh.position.set(0, 0.58, 0);
     root.add(buzzMesh);
   } else if (custom.hairStyle === "medium") {
-    const medGeo = new THREE.SphereGeometry(0.73, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.62);
+    const medGeo = new THREE.SphereGeometry(0.71, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.62);
     const medMesh = new THREE.Mesh(medGeo, hairMat);
-    medMesh.position.set(0, 0.65, -0.02);
+    medMesh.position.set(0, 0.59, -0.02);
     root.add(medMesh);
   } else {
-    const shortGeo = new THREE.SphereGeometry(0.71, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.56);
+    const shortGeo = new THREE.SphereGeometry(0.69, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.56);
     const shortMesh = new THREE.Mesh(shortGeo, hairMat);
-    shortMesh.position.set(0, 0.66, 0.02);
+    shortMesh.position.set(0, 0.6, 0.02);
     root.add(shortMesh);
   }
 
-  // Pescoço e Tronco / Roupa 3D
-  const neckGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.32, 16);
+  const neckGeo = new THREE.CylinderGeometry(0.21, 0.24, 0.3, 16);
   const neckMesh = new THREE.Mesh(neckGeo, skinMat);
-  neckMesh.position.set(0, -0.08, 0);
+  neckMesh.position.set(0, -0.12, 0);
   root.add(neckMesh);
 
-  const torsoGeo = new THREE.CylinderGeometry(0.56, 0.66, 1.15, 24);
+  const torsoGeo = new THREE.CylinderGeometry(0.54, 0.64, 1.05, 24);
   const torsoMesh = new THREE.Mesh(torsoGeo, outfitMat);
-  torsoMesh.position.set(0, -0.76, 0);
+  torsoMesh.position.set(0, -0.72, 0);
   root.add(torsoMesh);
 
-  // Braços 3D + Tatuagem (a partir dos 18 anos)
-  const armGeo = new THREE.CylinderGeometry(0.15, 0.13, 0.92, 16);
+  const armGeo = new THREE.CylinderGeometry(0.14, 0.12, 0.85, 16);
   const leftArm = new THREE.Mesh(armGeo, skinMat);
-  leftArm.position.set(-0.78, -0.68, 0);
+  leftArm.position.set(-0.75, -0.64, 0);
   leftArm.rotation.z = -0.14;
 
   const rightArm = new THREE.Mesh(armGeo, skinMat);
-  rightArm.position.set(0.78, -0.68, 0);
+  rightArm.position.set(0.75, -0.64, 0);
   rightArm.rotation.z = 0.14;
 
-  // Manga curta da roupa
-  const sleeveGeo = new THREE.CylinderGeometry(0.18, 0.17, 0.36, 16);
+  const sleeveGeo = new THREE.CylinderGeometry(0.17, 0.16, 0.34, 16);
   const leftSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
-  leftSleeve.position.set(-0.72, -0.38, 0);
+  leftSleeve.position.set(-0.69, -0.36, 0);
   leftSleeve.rotation.z = -0.14;
 
   const rightSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
-  rightSleeve.position.set(0.72, -0.38, 0);
+  rightSleeve.position.set(0.69, -0.36, 0);
   rightSleeve.rotation.z = 0.14;
 
   root.add(leftArm, rightArm, leftSleeve, rightSleeve);
@@ -426,92 +409,86 @@ function createAvatar3DGroup(person) {
   if (Number(person.age) >= 18 && custom.tattoo && custom.tattoo !== "none") {
     const tatGeo =
       custom.tattoo === "sleeve"
-        ? new THREE.CylinderGeometry(0.156, 0.142, 0.42, 16, 1, true)
-        : new THREE.SphereGeometry(0.08, 12, 12);
+        ? new THREE.CylinderGeometry(0.146, 0.132, 0.38, 16, 1, true)
+        : new THREE.SphereGeometry(0.075, 12, 12);
     const tatMat = new THREE.MeshStandardMaterial({
       color: "#0f172a",
       roughness: 0.7,
       side: THREE.DoubleSide
     });
     const tatMesh = new THREE.Mesh(tatGeo, tatMat);
-    tatMesh.position.set(0.81, -0.76, 0.04);
+    tatMesh.position.set(0.78, -0.72, 0.04);
     root.add(tatMesh);
   }
 
   root.scale.setScalar(stageScale);
-  root.position.set(0, -0.1, 0);
+  root.position.set(0, 0.08, 0);
   return root;
 }
 
 function mount3DAvatar(container, person, options = {}) {
   const THREE = window.THREE;
-  if (!container || !THREE) return;
+  if (!container) return;
 
-  const size = options.size || Math.max(container.clientWidth, container.clientHeight, 128);
-  let entry = threeViewers.get(container);
+  const size = options.size || Math.max(container.clientWidth, container.clientHeight, 132);
 
-  if (!entry) {
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    camera.position.set(0, 0.15, 3.95);
-
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "low-power"
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(size, size, false);
-
-    const ambient = new THREE.AmbientLight(0xffffff, 0.95);
-    const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
-    keyLight.position.set(2.2, 3.2, 3.5);
-    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.65);
-    rimLight.position.set(-2.5, 1.5, -2.0);
-
-    scene.add(ambient, keyLight, rimLight);
-
-    container.innerHTML = "";
-    container.appendChild(renderer.domElement);
-
-    entry = { scene, camera, renderer, avatarGroup: null, animId: null };
-    threeViewers.set(container, entry);
-
-    const animate = () => {
-      entry.animId = requestAnimationFrame(animate);
-      if (entry.avatarGroup) {
-        entry.avatarGroup.rotation.y = Math.sin(Date.now() * 0.0012) * 0.24;
-      }
-      entry.renderer.render(entry.scene, entry.camera);
-    };
-    animate();
+  if (!THREE) {
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:0.75rem;color:#cbd5e1;text-align:center;padding:6px;">A carregar motor 3D...</div>`;
+    return;
   }
 
-  if (entry.avatarGroup) {
-    entry.scene.remove(entry.avatarGroup);
+  try {
+    let entry = threeViewers.get(container);
+
+    if (!entry) {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+      camera.position.set(0, 0.12, 4.65);
+
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "low-power"
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(size, size, false);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 1.15);
+      const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.45);
+      keyLight.position.set(2.2, 3.2, 3.8);
+      const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.75);
+      rimLight.position.set(-2.5, 1.5, -2.0);
+
+      scene.add(ambient, keyLight, rimLight);
+
+      container.innerHTML = "";
+      container.appendChild(renderer.domElement);
+
+      entry = { scene, camera, renderer, avatarGroup: null, animId: null };
+      threeViewers.set(container, entry);
+
+      const animate = () => {
+        entry.animId = requestAnimationFrame(animate);
+        if (entry.avatarGroup) {
+          entry.avatarGroup.rotation.y = Math.sin(Date.now() * 0.0012) * 0.24;
+        }
+        entry.renderer.render(entry.scene, entry.camera);
+      };
+      animate();
+    }
+
+    if (entry.avatarGroup) {
+      entry.scene.remove(entry.avatarGroup);
+    }
+    entry.renderer.setSize(size, size, false);
+    entry.avatarGroup = createAvatar3DGroup(person);
+    entry.scene.add(entry.avatarGroup);
+    entry.renderer.render(entry.scene, entry.camera);
+  } catch (err) {
+    console.warn("Erro ao renderizar avatar 3D:", err);
+    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:0.75rem;color:#fca5a5;text-align:center;padding:6px;">WebGL indisponível</div>`;
   }
-  entry.renderer.setSize(size, size, false);
-  entry.avatarGroup = createAvatar3DGroup(person);
-  entry.scene.add(entry.avatarGroup);
-  entry.renderer.render(entry.scene, entry.camera);
 }
-
-/* --- Estado e Funções do Jogo --- */
-let setupState = {
-  sex: "Masculino",
-  presetIndex: 1,
-  avatarCustom: createDefaultAvatarCustom("Masculino", 1),
-  family: []
-};
-
-let gameState = null;
-
-let modalState = {
-  isOpen: false,
-  target: "game",
-  category: "hair",
-  draft: null
-};
 
 function showToast(msg) {
   const toast = document.getElementById("toast");
@@ -553,7 +530,6 @@ function loadSavedGame() {
   }
 }
 
-/* --- Modal Editar Avatar 3D --- */
 function openAppearanceModal(target = "game") {
   modalState.isOpen = true;
   modalState.target = target;
@@ -778,7 +754,6 @@ function renderAppearanceModal() {
   document.getElementById("cancelAppearanceBtn")?.addEventListener("click", closeAppearanceModal);
 }
 
-/* --- Ecrã Inicial (#setupScreen) --- */
 function populateCountriesAndCities() {
   const countrySelect = document.getElementById("playerCountrySelect");
   if (!countrySelect) return;
@@ -972,7 +947,6 @@ function startNewGame() {
   openGameScreen();
 }
 
-/* --- Ecrã Principal do Jogo (#gameScreen) --- */
 function openGameScreen() {
   document.getElementById("setupScreen")?.classList.add("hidden");
   document.getElementById("gameScreen")?.classList.remove("hidden");
