@@ -136,6 +136,7 @@ const APPEARANCE_CATEGORIES = [
 ];
 
 const generatedLayerCache = new Map();
+const enhancedSvgCache = new Map();
 
 function drawRoundedBox(ctx, x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2);
@@ -305,6 +306,101 @@ function buildDiceBearUrl(person) {
   return `${DICEBEAR_API_BASE}/${style}/svg?${params.toString()}`;
 }
 
+function injectRealisticHairShadingToSvg(svgText, hairHex, hairStyle) {
+  const baseHair = `#${cleanHex(hairHex, "3b2618")}`;
+  const shadowColor = shadeHexColor(baseHair, -34);
+  const highlightColor = shadeHexColor(baseHair, 26);
+
+  const strandLines = [];
+  const count = hairStyle === "buzz" ? 7 : 11;
+
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? 0.5 : i / (count - 1);
+    const xStart = 78 + t * 108;
+    const yStart = hairStyle === "buzz" ? 56 : 44 + Math.sin(t * Math.PI) * -6;
+    const xCtrl = xStart + (t - 0.5) * 14;
+    const yCtrl = yStart + (hairStyle === "long" ? 42 : 24);
+    const xEnd = xStart + (t - 0.5) * 20;
+    const yEnd = yStart + (hairStyle === "long" ? 78 : 44);
+
+    const strokeCol = i % 2 === 0 ? shadowColor : highlightColor;
+    const opacity = i % 2 === 0 ? "0.42" : "0.28";
+
+    strandLines.push(
+      `<path d="M ${xStart.toFixed(1)} ${yStart.toFixed(1)} Q ${xCtrl.toFixed(1)} ${yCtrl.toFixed(1)}, ${xEnd.toFixed(1)} ${yEnd.toFixed(1)}" fill="none" stroke="${strokeCol}" stroke-width="${hairStyle === "buzz" ? "1.4" : "1.8"}" stroke-linecap="round" stroke-opacity="${opacity}"/>`
+    );
+  }
+
+  const shadingOverlay = `
+    <defs>
+      <linearGradient id="starlifeHairShadeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="${highlightColor}" stop-opacity="0.22"/>
+        <stop offset="65%" stop-color="${baseHair}" stop-opacity="0"/>
+        <stop offset="100%" stop-color="${shadowColor}" stop-opacity="0.45"/>
+      </linearGradient>
+    </defs>
+    <g id="starlife-hair-shading" pointer-events="none">
+      <ellipse cx="132" cy="76" rx="58" ry="34" fill="url(#starlifeHairShadeGrad)"/>
+      ${strandLines.join("\n      ")}
+      <path d="M 76 96 Q 132 112, 188 96" fill="none" stroke="${shadowColor}" stroke-width="4" stroke-linecap="round" stroke-opacity="0.22"/>
+    </g>
+  `;
+
+  if (svgText.includes("</svg>")) {
+    return svgText.replace("</svg>", `${shadingOverlay}\n</svg>`);
+  }
+  return svgText;
+}
+
+async function getShadedDiceBearDataUrl(person, diceUrl) {
+  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
+  const hairHex = cleanHex(getEffectiveHairColor(person), "3b2618");
+  const cacheKey = `${diceUrl}|${hairHex}|${custom.hairStyle}`;
+
+  if (enhancedSvgCache.has(cacheKey)) {
+    return enhancedSvgCache.get(cacheKey);
+  }
+
+  const resp = await fetch(diceUrl);
+  if (!resp.ok) {
+    throw new Error(`HTTP ${resp.status}`);
+  }
+  const rawSvg = await resp.text();
+  const shadedSvg = injectRealisticHairShadingToSvg(rawSvg, hairHex, custom.hairStyle);
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(shadedSvg)}`;
+  enhancedSvgCache.set(cacheKey, dataUrl);
+  return dataUrl;
+}
+
+function hydrateShadedAvatars(rootEl = document) {
+  const imgs = rootEl.querySelectorAll("img[data-dice-url]");
+  imgs.forEach((img) => {
+    const diceUrl = img.getAttribute("data-dice-url");
+    if (!diceUrl || img.dataset.shadedApplied === "1") return;
+
+    const person = {
+      age: Number(img.getAttribute("data-age") || 18),
+      avatarCustom: {
+        hairColor: img.getAttribute("data-hair-color") || "#3b2618",
+        hairStyle: img.getAttribute("data-hair-style") || "short"
+      }
+    };
+
+    getShadedDiceBearDataUrl(person, diceUrl)
+      .then((shadedUrl) => {
+        if (!img.isConnected) return;
+        img.dataset.shadedApplied = "1";
+        img.src = shadedUrl;
+      })
+      .catch(() => {
+        const fallback = img.getAttribute("data-fallback");
+        if (fallback && img.src !== fallback) {
+          img.src = fallback;
+        }
+      });
+  });
+}
+
 function drawNaturalHair(ctx, style, hairColor, stage) {
   const darkHair = shadeHexColor(hairColor, -28);
   const lightHair = shadeHexColor(hairColor, 24);
@@ -332,6 +428,20 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
   ctx.fill();
   ctx.stroke();
 
+  for (let i = 0; i < 10; i++) {
+    const t = i / 9;
+    const sx = -45 + t * 90;
+    const sy = -82 + Math.sin(t * Math.PI) * -6;
+    ctx.strokeStyle = i % 2 === 0 ? darkHair : lightHair;
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(sx + (t - 0.5) * 8, sy + 14, sx + (t - 0.5) * 14, sy + 28);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
@@ -422,15 +532,24 @@ function generateCanvasFallbackDataUrl(person) {
 }
 
 function renderAvatarLayersHTML(person) {
+  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
   const diceUrl = buildDiceBearUrl(person);
   const fallbackUrl = generateCanvasFallbackDataUrl(person);
+  const hairColor = getEffectiveHairColor(person);
+
+  setTimeout(() => hydrateShadedAvatars(document), 0);
+
   return `
     <div class="avatar-stack">
       <img
         class="avatar-layer-img"
         style="z-index:2;"
         src="${diceUrl}"
+        data-dice-url="${diceUrl}"
         data-fallback="${fallbackUrl}"
+        data-hair-color="${hairColor}"
+        data-hair-style="${custom.hairStyle || "short"}"
+        data-age="${Number(person.age) || 18}"
         alt="Avatar"
         onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
       >
