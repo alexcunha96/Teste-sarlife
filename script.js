@@ -69,11 +69,11 @@ const PRESET_CONFIGS = {
 
 const APPEARANCE_OPTIONS = {
   eyes: [
-    { id: "#2563eb", label: "Olhos Azuis", diceEye: "happy" },
-    { id: "#15803d", label: "Olhos Verdes", diceEye: "default" },
-    { id: "#5c3a21", label: "Olhos Castanhos", diceEye: "surprised" },
-    { id: "#475569", label: "Olhos Cinzentos", diceEye: "wink" },
-    { id: "#92400e", label: "Olhos Âmbar / Mel", diceEye: "hearts" }
+    { id: "#2563eb", label: "Olhos Azuis", diceEye: "default" },
+    { id: "#15803d", label: "Olhos Verdes", diceEye: "wink" },
+    { id: "#5c3a21", label: "Olhos Castanhos", diceEye: "side" },
+    { id: "#475569", label: "Olhos Cinzentos", diceEye: "eyeRoll" },
+    { id: "#92400e", label: "Olhos Âmbar / Mel", diceEye: "squint" }
   ],
   skin: [
     { id: "#fbe3cf", label: "Pele Clara", diceSkin: "ffdbb4" },
@@ -96,10 +96,10 @@ const APPEARANCE_OPTIONS = {
   ],
   hair: [
     { id: "short", label: "Cabelo Curto", diceTop: "shortFlat" },
-    { id: "medium", label: "Cabelo Médio", diceTop: "sidesBird" },
+    { id: "medium", label: "Cabelo Médio", diceTop: "bob" },
     { id: "long", label: "Cabelo Comprido", diceTop: "longButNotTooLong" },
     { id: "ponytail", label: "Rabo de Cavalo", diceTop: "bun" },
-    { id: "buzz", label: "Rapado / Curto Alto", diceTop: "shaggy" }
+    { id: "buzz", label: "Rapado / Curto Alto", diceTop: "shortCurly" }
   ],
   outfit: [
     { id: "casual", label: "T-Shirt Casual", diceCloth: "graphicShirt" },
@@ -108,10 +108,10 @@ const APPEARANCE_OPTIONS = {
     { id: "hoodie", label: "Sweat com Capuz", diceCloth: "hoodie" }
   ],
   tattoo: [
-    { id: "none", label: "Sem Tatuagem", diceAcc: "" },
-    { id: "star", label: "Estrela no Braço", diceAcc: "round" },
-    { id: "sleeve", label: "Manga no Braço", diceAcc: "prescription02" },
-    { id: "tribal", label: "Símbolo Tribal", diceAcc: "wayfarers" }
+    { id: "none", label: "Sem Acessório", diceAcc: "" },
+    { id: "star", label: "Óculos Redondos", diceAcc: "round" },
+    { id: "sleeve", label: "Óculos Graduados", diceAcc: "prescription02" },
+    { id: "tribal", label: "Óculos Escuros", diceAcc: "wayfarers" }
   ]
 };
 
@@ -128,7 +128,7 @@ const APPEARANCE_CATEGORIES = [
   { key: "facialHair", label: "Barba" },
   { key: "hair", label: "Cabelo" },
   { key: "outfit", label: "Roupa" },
-  { key: "tattoo", label: "Tatuagem" }
+  { key: "tattoo", label: "Acessório" }
 ];
 
 const generatedLayerCache = new Map();
@@ -264,9 +264,7 @@ function buildDiceBearUrl(person) {
   const accOpt =
     APPEARANCE_OPTIONS.tattoo.find((o) => o.id === custom.tattoo) || APPEARANCE_OPTIONS.tattoo[0];
 
-  const seed = encodeURIComponent(
-    `${person.name || "star"}_${person.sex || "M"}_${custom.hairStyle}_${custom.facialHair}_${custom.outfit}`
-  );
+  const seed = `${person.name || "starlife"}-${custom.presetIndex || 1}`;
   const params = new URLSearchParams();
   params.set("seed", seed);
   params.set("radius", "50");
@@ -281,7 +279,7 @@ function buildDiceBearUrl(person) {
     params.set("clothing", clothOpt.diceCloth);
     params.set("mouth", "smile");
 
-    if (Number(person.age) >= 14 && beardOpt.diceBeard) {
+    if (beardOpt.diceBeard) {
       params.set("facialHair", beardOpt.diceBeard);
       params.set("facialHairColor", hairHex);
       params.set("facialHairProbability", "100");
@@ -289,7 +287,7 @@ function buildDiceBearUrl(person) {
       params.set("facialHairProbability", "0");
     }
 
-    if (Number(person.age) >= 18 && accOpt.diceAcc) {
+    if (accOpt.diceAcc) {
       params.set("accessories", accOpt.diceAcc);
       params.set("accessoriesProbability", "100");
     } else {
@@ -315,111 +313,20 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  if (stage === "bebe") {
-    ctx.fillStyle = hairColor;
-    ctx.strokeStyle = darkHair;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-8, -82);
-    ctx.quadraticCurveTo(-14, -98, -2, -102);
-    ctx.quadraticCurveTo(4, -90, 6, -101);
-    ctx.quadraticCurveTo(15, -94, 8, -82);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-    return;
-  }
-
   ctx.fillStyle = grad;
   ctx.strokeStyle = darkHair;
   ctx.lineWidth = 2.2;
 
-  if (style === "long") {
-    ctx.beginPath();
-    ctx.moveTo(-61, -36);
-    ctx.bezierCurveTo(-66, -88, -24, -96, 0, -94);
-    ctx.bezierCurveTo(28, -96, 66, -86, 61, -36);
-    ctx.lineTo(65, 58);
-    ctx.quadraticCurveTo(50, 64, 42, 46);
-    ctx.lineTo(40, -24);
-    ctx.lineTo(-40, -24);
-    ctx.lineTo(-42, 46);
-    ctx.quadraticCurveTo(-50, 64, -65, 58);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else if (style === "ponytail") {
-    ctx.beginPath();
-    ctx.moveTo(-59, -38);
-    ctx.bezierCurveTo(-62, -86, -20, -94, 2, -90);
-    ctx.bezierCurveTo(32, -92, 58, -76, 59, -38);
-    ctx.quadraticCurveTo(34, -56, 0, -56);
-    ctx.quadraticCurveTo(-34, -56, -59, -38);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-59, -38);
+  ctx.bezierCurveTo(-62, -86, -20, -94, 4, -91);
+  ctx.bezierCurveTo(32, -92, 60, -78, 59, -38);
+  ctx.quadraticCurveTo(36, -54, 10, -48);
+  ctx.quadraticCurveTo(-18, -56, -59, -38);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(42, -74);
-    ctx.bezierCurveTo(78, -82, 92, -46, 76, -14);
-    ctx.bezierCurveTo(68, -28, 62, -46, 44, -56);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else if (style === "buzz") {
-    ctx.beginPath();
-    ctx.moveTo(-58, -40);
-    ctx.bezierCurveTo(-58, -78, -24, -84, 0, -83);
-    ctx.bezierCurveTo(24, -84, 58, -78, 58, -40);
-    ctx.quadraticCurveTo(28, -54, 0, -54);
-    ctx.quadraticCurveTo(-28, -54, -58, -40);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else if (style === "medium") {
-    ctx.beginPath();
-    ctx.moveTo(-61, -34);
-    ctx.bezierCurveTo(-65, -88, -22, -96, 2, -93);
-    ctx.bezierCurveTo(32, -95, 65, -84, 61, -34);
-    ctx.quadraticCurveTo(56, 2, 44, 6);
-    ctx.lineTo(40, -48);
-    ctx.quadraticCurveTo(0, -58, -40, -48);
-    ctx.lineTo(-44, 6);
-    ctx.quadraticCurveTo(-56, 2, -61, -34);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(-59, -38);
-    ctx.bezierCurveTo(-62, -86, -20, -94, 4, -91);
-    ctx.bezierCurveTo(32, -92, 60, -78, 59, -38);
-    ctx.quadraticCurveTo(36, -54, 10, -48);
-    ctx.quadraticCurveTo(-18, -56, -59, -38);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  const strokes = style === "buzz" ? 8 : 13;
-  for (let i = 0; i < strokes; i++) {
-    const t = strokes === 1 ? 0.5 : i / (strokes - 1);
-    const sx = -46 + t * 92;
-    const sy = style === "buzz" ? -72 : -82 + Math.sin(t * Math.PI) * -6;
-    const ex = sx + (t - 0.5) * 14;
-    const ey = sy + (style === "buzz" ? 12 : style === "long" ? 32 : 22);
-
-    ctx.strokeStyle = i % 2 === 0 ? lightHair : darkHair;
-    ctx.globalAlpha = 0.55;
-    ctx.lineWidth = style === "buzz" ? 1.5 : 2;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.quadraticCurveTo((sx + ex) * 0.5 + 4, (sy + ey) * 0.5, ex, ey);
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
@@ -439,11 +346,8 @@ function generateCanvasFallbackDataUrl(person) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
-  const scale = stage === "bebe" ? 0.85 : stage === "crianca" ? 0.92 : 1.0;
-
   ctx.save();
   ctx.translate(160, 174);
-  ctx.scale(scale, scale);
 
   const skinDark = shadeHexColor(custom.skinTone, -22);
   const skinLight = shadeHexColor(custom.skinTone, 14);
@@ -471,14 +375,6 @@ function generateCanvasFallbackDataUrl(person) {
   drawRoundedBox(ctx, -21, 28, 42, 50, 12);
   ctx.fill();
 
-  [-57, 57].forEach((ex, idx) => {
-    const dir = idx === 0 ? -1 : 1;
-    ctx.fillStyle = skinDark;
-    ctx.beginPath();
-    ctx.ellipse(ex, -14, 10, 16, dir * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
   const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -16, 76);
   faceGrad.addColorStop(0, skinLight);
   faceGrad.addColorStop(0.65, custom.skinTone);
@@ -487,15 +383,6 @@ function generateCanvasFallbackDataUrl(person) {
   ctx.beginPath();
   ctx.ellipse(0, -16, 57, 68, 0, 0, Math.PI * 2);
   ctx.fill();
-
-  ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
-  ctx.lineWidth = 2.2;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(1, -22);
-  ctx.lineTo(-4, 2);
-  ctx.quadraticCurveTo(0, 7, 7, 4);
-  ctx.stroke();
 
   ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
   ctx.lineWidth = 2.4;
@@ -521,40 +408,7 @@ function generateCanvasFallbackDataUrl(person) {
     ctx.fill();
   });
 
-  ctx.strokeStyle = hairColor;
-  ctx.lineWidth = custom.browStyle === "thick" ? 5 : 3.6;
-  [-1, 1].forEach((dir) => {
-    ctx.beginPath();
-    ctx.moveTo(dir * 10, -36);
-    ctx.quadraticCurveTo(dir * 22, custom.browStyle === "arch" ? -45 : -37, dir * 35, -35);
-    ctx.stroke();
-  });
-
-  if (Number(person.age) >= 14 && custom.facialHair !== "none") {
-    ctx.fillStyle = hairColor;
-    ctx.globalAlpha = 0.85;
-    if (custom.facialHair === "beard") {
-      ctx.beginPath();
-      ctx.moveTo(-51, -8);
-      ctx.quadraticCurveTo(-54, 46, 0, 52);
-      ctx.quadraticCurveTo(54, 46, 51, -8);
-      ctx.lineTo(41, -6);
-      ctx.quadraticCurveTo(38, 36, 0, 41);
-      ctx.quadraticCurveTo(-38, 36, -41, -6);
-      ctx.closePath();
-      ctx.fill();
-      drawRoundedBox(ctx, -18, 10, 36, 6, 3);
-      ctx.fill();
-    } else if (custom.facialHair === "goatee") {
-      ctx.beginPath();
-      ctx.ellipse(0, 36, 11, 7.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
   drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
-
   ctx.restore();
 
   const url = canvas.toDataURL("image/png");
@@ -818,4 +672,446 @@ function renderAppearanceModal() {
     });
   });
 
-  document.getElementById("appPrevBtn")?.addEventListener("click
+  document.getElementById("appPrevBtn")?.addEventListener("click", () => cycleDraftOption(-1));
+  document.getElementById("appNextBtn")?.addEventListener("click", () => cycleDraftOption(1));
+
+  document.getElementById("modalDiceStyleSelect")?.addEventListener("change", (e) => {
+    modalState.draft.diceStyle = e.target.value;
+    renderAppearanceModal();
+  });
+
+  document.getElementById("modalHairColorInput")?.addEventListener("input", (e) => {
+    modalState.draft.hairColor = e.target.value;
+    renderAppearanceModal();
+  });
+
+  document.getElementById("modalOutfitColorInput")?.addEventListener("input", (e) => {
+    modalState.draft.outfitColor = e.target.value;
+    renderAppearanceModal();
+  });
+
+  document.getElementById("saveAppearanceBtn")?.addEventListener("click", saveAppearanceModal);
+  document.getElementById("cancelAppearanceBtn")?.addEventListener("click", closeAppearanceModal);
+}
+
+function populateCountriesAndCities() {
+  const countrySelect = document.getElementById("playerCountrySelect");
+  if (!countrySelect) return;
+
+  countrySelect.innerHTML = Object.keys(COUNTRIES_DATA)
+    .map((country) => `<option value="${country}">${country}</option>`)
+    .join("");
+
+  onCountryChange();
+}
+
+function onCountryChange() {
+  const countrySelect = document.getElementById("playerCountrySelect");
+  const citySelect = document.getElementById("playerCitySelect");
+  const customCountryGroup = document.getElementById("customCountryGroup");
+  if (!countrySelect || !citySelect) return;
+
+  const selectedCountry = countrySelect.value;
+  if (customCountryGroup) {
+    customCountryGroup.style.display = selectedCountry === "Outro" ? "flex" : "none";
+  }
+
+  const cities = COUNTRIES_DATA[selectedCountry] || ["Outra Cidade"];
+  citySelect.innerHTML = cities
+    .map((city) => `<option value="${city}">${city}</option>`)
+    .join("");
+
+  onCitySelectChange();
+}
+
+function onCitySelectChange() {
+  const citySelect = document.getElementById("playerCitySelect");
+  const customCityGroup = document.getElementById("customCityGroup");
+  if (!citySelect || !customCityGroup) return;
+
+  customCityGroup.style.display = citySelect.value === "Outra Cidade" ? "flex" : "none";
+}
+
+function onSetupGenderChange() {
+  const sexSelect = document.getElementById("playerSex");
+  const hintEl = document.getElementById("nameHint");
+  if (!sexSelect) return;
+
+  setupState.sex = sexSelect.value;
+  setupState.avatarCustom = createDefaultAvatarCustom(setupState.sex, setupState.presetIndex);
+  if (hintEl) {
+    hintEl.textContent = `(${NAME_HINTS[setupState.sex] || "Ex: João"})`;
+  }
+  renderSetupAvatar();
+}
+
+function changeSetupAvatar(delta) {
+  const maxPresets = Object.keys(PRESET_CONFIGS).length;
+  setupState.presetIndex =
+    (((setupState.presetIndex - 1 + delta) % maxPresets) + maxPresets) % maxPresets + 1;
+  setupState.avatarCustom = createDefaultAvatarCustom(setupState.sex, setupState.presetIndex);
+  renderSetupAvatar();
+}
+
+function renderSetupAvatar() {
+  const stageEl = document.getElementById("setupAvatarStage");
+  const indexEl = document.getElementById("setupAvatarIndex");
+  if (indexEl) {
+    indexEl.textContent = `#${setupState.presetIndex}`;
+  }
+  if (!stageEl) return;
+
+  const previewPerson = {
+    name: document.getElementById("playerName")?.value.trim() || "Avatar",
+    surname: "",
+    sex: setupState.sex,
+    age: 18,
+    avatarCustom: setupState.avatarCustom
+  };
+
+  stageEl.innerHTML = renderAvatarLayersHTML(previewPerson);
+}
+
+function renderSetupFamilyList() {
+  const listEl = document.getElementById("setupFamilyList");
+  if (!listEl) return;
+
+  if (!setupState.family.length) {
+    listEl.innerHTML = `<p class="muted">Nenhum familiar adicionado ainda.</p>`;
+    return;
+  }
+
+  listEl.innerHTML = setupState.family
+    .map(
+      (member, idx) => `
+      <div class="person-card">
+        <strong>${member.name}</strong> (${member.relation}, ${member.age} anos, ${member.maritalStatus})
+        <button type="button" class="danger-btn" style="margin-left: 8px; padding: 4px 8px;" data-remove-fam="${idx}">X</button>
+      </div>
+    `
+    )
+    .join("");
+
+  listEl.querySelectorAll("[data-remove-fam]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = Number(btn.dataset.removeFam);
+      setupState.family.splice(index, 1);
+      renderSetupFamilyList();
+    });
+  });
+}
+
+function addFamilyMemberFromSetup() {
+  const nameInput = document.getElementById("famName");
+  const relationSelect = document.getElementById("famRelation");
+  const ageInput = document.getElementById("famAge");
+  const statusSelect = document.getElementById("famMaritalStatus");
+
+  const name = nameInput?.value.trim();
+  if (!name) {
+    showToast("Escreve o nome do familiar.");
+    return;
+  }
+
+  setupState.family.push({
+    name,
+    relation: relationSelect?.value || "Outro",
+    age: Math.max(0, Number(ageInput?.value) || 0),
+    maritalStatus: statusSelect?.value || "Solteiro/a"
+  });
+
+  if (nameInput) nameInput.value = "";
+  renderSetupFamilyList();
+}
+
+function getSelectedLocation() {
+  const countrySelect = document.getElementById("playerCountrySelect");
+  const customCountry = document.getElementById("playerCountryCustom")?.value.trim();
+  const citySelect = document.getElementById("playerCitySelect");
+  const customCity = document.getElementById("playerCityCustom")?.value.trim();
+
+  const country =
+    countrySelect?.value === "Outro"
+      ? customCountry || "Outro País"
+      : countrySelect?.value || "Portugal";
+
+  const city =
+    citySelect?.value === "Outra Cidade"
+      ? customCity || "Outra Cidade"
+      : citySelect?.value || "Lisboa";
+
+  return { country, city };
+}
+
+function startNewGame() {
+  const nameInput = document.getElementById("playerName");
+  const surnameInput = document.getElementById("playerSurname");
+  const sexSelect = document.getElementById("playerSex");
+
+  const name = nameInput?.value.trim() || "João";
+  const surname = surnameInput?.value.trim() || "";
+  const sex = sexSelect?.value || setupState.sex || "Masculino";
+  const { country, city } = getSelectedLocation();
+
+  gameState = createInitialGameState({
+    name,
+    surname,
+    sex,
+    country,
+    city,
+    presetIndex: setupState.presetIndex,
+    avatarCustom: { ...setupState.avatarCustom },
+    family: [...setupState.family],
+    events: [`Nasceu em ${city}, ${country} com 0 anos.`]
+  });
+
+  saveGame();
+  openGameScreen();
+}
+
+function openGameScreen() {
+  document.getElementById("setupScreen")?.classList.add("hidden");
+  document.getElementById("gameScreen")?.classList.remove("hidden");
+  renderAvatarEditorButton();
+  renderGameUI();
+}
+
+function renderHeaderAvatar() {
+  const container = document.getElementById("headerAvatarContainer");
+  if (!container || !gameState) return;
+
+  const stage = getLifeStage(gameState.age);
+  const effectiveHair = getEffectiveHairColor(gameState);
+
+  container.className = "header-avatar";
+  container.style.setProperty("--hair-color", effectiveHair);
+
+  container.innerHTML = `
+    <div class="avatar-hair-bar" title="Cor do cabelo"></div>
+    <div class="avatar-circle-inner">
+      ${renderAvatarLayersHTML(gameState)}
+    </div>
+    <span class="life-stage-badge">${stage.label}</span>
+  `;
+}
+
+function renderAvatarEditorButton() {
+  const container = document.getElementById("avatarEditorContainer");
+  if (!container || !gameState) return;
+
+  container.innerHTML = `
+    <p class="muted" style="margin-top:0;">
+      Personaliza olhos, pele, sobrancelhas, barba, cabelo, roupa e acessórios num editor com setas.
+    </p>
+    <button type="button" class="primary-btn full-width" id="openGameEditAvatarBtn">
+      ✏️ Editar Avatar
+    </button>
+  `;
+
+  document.getElementById("openGameEditAvatarBtn")?.addEventListener("click", () => {
+    openAppearanceModal("game");
+  });
+}
+
+function renderGameUI() {
+  if (!gameState) return;
+
+  const stage = getLifeStage(gameState.age);
+  const fullName = `${gameState.name} ${gameState.surname}`.trim();
+
+  document.documentElement.style.setProperty(
+    "--hair-color",
+    getEffectiveHairColor(gameState)
+  );
+
+  const nameEl = document.getElementById("homePlayerName");
+  const locEl = document.getElementById("homePlayerLocation");
+  const ageEl = document.getElementById("homeAge");
+  const stageEl = document.getElementById("lifeStageValue");
+  const healthBar = document.getElementById("healthBar");
+  const healthVal = document.getElementById("healthValue");
+  const happyBar = document.getElementById("happinessBar");
+  const happyVal = document.getElementById("happinessValue");
+  const housingEl = document.getElementById("housingSummary");
+  const eduEl = document.getElementById("educationValue");
+  const jobEl = document.getElementById("jobValue");
+  const illEl = document.getElementById("illnessValue");
+
+  if (nameEl) nameEl.textContent = fullName;
+  if (locEl) locEl.textContent = `${gameState.city}, ${gameState.country}`;
+  if (ageEl) ageEl.textContent = String(gameState.age);
+  if (stageEl) stageEl.textContent = stage.label;
+  if (healthBar) healthBar.style.width = `${gameState.health}%`;
+  if (healthVal) healthVal.textContent = `${gameState.health}%`;
+  if (happyBar) happyBar.style.width = `${gameState.happiness}%`;
+  if (happyVal) happyVal.textContent = `${gameState.happiness}%`;
+  if (housingEl) housingEl.textContent = gameState.housing;
+  if (eduEl) eduEl.textContent = gameState.education;
+  if (jobEl) jobEl.textContent = gameState.job;
+  if (illEl) illEl.textContent = gameState.illness;
+
+  const totalWealthEl = document.getElementById("totalWealth");
+  const bankBalanceEl = document.getElementById("bankBalance");
+  const bankNameEl = document.getElementById("currentBankName");
+  const salaryEl = document.getElementById("annualSalary");
+  const debtEl = document.getElementById("debtValue");
+
+  if (totalWealthEl) totalWealthEl.textContent = `${gameState.money - gameState.debt} €`;
+  if (bankBalanceEl) bankBalanceEl.textContent = `${gameState.money} €`;
+  if (bankNameEl) bankNameEl.textContent = gameState.bankName;
+  if (salaryEl) salaryEl.textContent = `${gameState.salary} €`;
+  if (debtEl) debtEl.textContent = `${gameState.debt} €`;
+
+  const careerJobEl = document.getElementById("careerJob");
+  const careerSalaryEl = document.getElementById("careerSalary");
+  const careerEduEl = document.getElementById("careerEducation");
+  if (careerJobEl) careerJobEl.textContent = gameState.job;
+  if (careerSalaryEl) careerSalaryEl.textContent = `${gameState.salary} €`;
+  if (careerEduEl) careerEduEl.textContent = gameState.education;
+
+  const eventsEl = document.getElementById("recentEvents");
+  if (eventsEl) {
+    eventsEl.innerHTML = gameState.events
+      .map((ev) => `<div class="event-item">${ev}</div>`)
+      .join("");
+  }
+
+  const peopleListEl = document.getElementById("peopleList");
+  if (peopleListEl) {
+    if (!gameState.family.length) {
+      peopleListEl.innerHTML = `<p class="muted">Sem familiares registados.</p>`;
+    } else {
+      peopleListEl.innerHTML = gameState.family
+        .map(
+          (m) => `
+          <div class="person-card">
+            <strong>${m.name}</strong> — ${m.relation} (${m.age} anos)
+          </div>
+        `
+        )
+        .join("");
+    }
+  }
+
+  renderHeaderAvatar();
+}
+
+function advanceYear() {
+  if (!gameState) return;
+
+  const prevStage = getLifeStage(gameState.age);
+  gameState.age += 1;
+
+  gameState.family = gameState.family.map((m) => ({
+    ...m,
+    age: (Number(m.age) || 0) + 1
+  }));
+
+  if (gameState.age >= 6 && gameState.age < 12) {
+    gameState.education = "Ensino Básico";
+  } else if (gameState.age >= 12 && gameState.age < 18) {
+    gameState.education = "Ensino Secundário";
+  } else if (gameState.age >= 18) {
+    gameState.education = "Ensino Superior / Adulto";
+    if (gameState.salary === 0) {
+      gameState.salary = 14400;
+      gameState.job = "Estagiário / Trabalhador";
+    }
+    gameState.money += gameState.salary;
+  }
+
+  const nextStage = getLifeStage(gameState.age);
+  if (prevStage.id !== nextStage.id) {
+    pushEvent(`Entrou na fase de vida: ${nextStage.label}.`);
+  } else {
+    pushEvent("Completou mais um ano de vida.");
+  }
+
+  saveGame();
+  renderGameUI();
+}
+
+function bindTabsAndNavigation() {
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.dataset.tab;
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document.querySelectorAll(".tab-content").forEach((sec) => {
+        sec.classList.toggle("hidden", sec.id !== targetTab);
+      });
+    });
+  });
+
+  document.querySelectorAll(".sub-nav").forEach((nav) => {
+    nav.querySelectorAll(".sub-btn").forEach((subBtn) => {
+      subBtn.addEventListener("click", () => {
+        const targetSub = subBtn.dataset.sub;
+        nav.querySelectorAll(".sub-btn").forEach((b) => b.classList.remove("active"));
+        subBtn.classList.add("active");
+
+        const parentSection = nav.parentElement;
+        parentSection?.querySelectorAll(".sub-content").forEach((box) => {
+          box.classList.toggle("hidden", box.id !== targetSub);
+        });
+      });
+    });
+  });
+}
+
+function bindMainButtons() {
+  document.getElementById("setupPrevAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(-1));
+  document.getElementById("setupNextAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(1));
+  document.getElementById("setupEditAvatarBtn")?.addEventListener("click", () => openAppearanceModal("setup"));
+  document.getElementById("playerSex")?.addEventListener("change", onSetupGenderChange);
+  document.getElementById("playerCountrySelect")?.addEventListener("change", onCountryChange);
+  document.getElementById("playerCitySelect")?.addEventListener("change", onCitySelectChange);
+
+  document.getElementById("addFamilyMemberBtn")?.addEventListener("click", addFamilyMemberFromSetup);
+  document.getElementById("startGameBtn")?.addEventListener("click", startNewGame);
+  document.getElementById("advanceYearBtn")?.addEventListener("click", advanceYear);
+
+  document.getElementById("continueGameBtn")?.addEventListener("click", () => {
+    const saved = loadSavedGame();
+    if (saved) {
+      gameState = saved;
+      openGameScreen();
+    }
+  });
+
+  document.getElementById("deleteSaveBtn")?.addEventListener("click", () => {
+    localStorage.removeItem(SAVE_KEY);
+    gameState = null;
+    document.getElementById("continuePanel")?.classList.add("hidden");
+    showToast("Jogo guardado apagado.");
+  });
+}
+
+function initApp() {
+  try {
+    document.getElementById("setupScreen")?.classList.remove("hidden");
+    document.getElementById("gameScreen")?.classList.add("hidden");
+    document.getElementById("deathScreen")?.classList.add("hidden");
+    document.getElementById("customModal")?.classList.add("hidden");
+
+    populateCountriesAndCities();
+    bindTabsAndNavigation();
+    bindMainButtons();
+    renderSetupAvatar();
+    renderSetupFamilyList();
+
+    const existingSave = loadSavedGame();
+    if (existingSave) {
+      document.getElementById("continuePanel")?.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.error("Erro ao iniciar a aplicação:", err);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
