@@ -19,7 +19,7 @@ const NAME_HINTS = {
 const PRESET_CONFIGS = {
   1: {
     diceStyle: "avataaars",
-    mouthStyle: "twinkle",
+    mouthStyle: "default",
     skinTone: "#f2c29b",
     eyeColor: "#2563eb",
     browStyle: "arch",
@@ -32,7 +32,7 @@ const PRESET_CONFIGS = {
   },
   2: {
     diceStyle: "avataaars",
-    mouthStyle: "default",
+    mouthStyle: "twinkle",
     skinTone: "#d89b6c",
     eyeColor: "#15803d",
     browStyle: "straight",
@@ -58,7 +58,7 @@ const PRESET_CONFIGS = {
   },
   4: {
     diceStyle: "avataaars",
-    mouthStyle: "twinkle",
+    mouthStyle: "default",
     skinTone: "#fbe3cf",
     eyeColor: "#0284c7",
     browStyle: "soft",
@@ -178,7 +178,7 @@ function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
   const preset = PRESET_CONFIGS[presetIndex] || PRESET_CONFIGS[1];
   return {
     diceStyle: preset.diceStyle || "avataaars",
-    mouthStyle: preset.mouthStyle || "twinkle",
+    mouthStyle: preset.mouthStyle || "default",
     presetIndex,
     skinTone: preset.skinTone,
     eyeColor: preset.eyeColor,
@@ -290,10 +290,11 @@ function buildDiceBearUrl(person) {
     params.set("eyebrows", browOpt.diceBrow);
     params.set("top", getAgeAdjustedTop(person, hairOpt));
     params.set("clothing", stage.id === "bebe" ? "shirtCrewNeck" : clothOpt.diceCloth);
-    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "twinkle");
+    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "default");
 
-    const canHaveBeard = Number(person.age) >= 16 && beardOpt.diceBeard;
-    if (canHaveBeard) {
+    // A barba escolhida só aparece automaticamente a partir dos 18 anos
+    const hasAdultBeard = Number(person.age) >= 18 && beardOpt.diceBeard;
+    if (hasAdultBeard) {
       params.set("facialHair", beardOpt.diceBeard);
       params.set("facialHairColor", hairHex);
       params.set("facialHairProbability", "100");
@@ -435,7 +436,7 @@ function generateCanvasFallbackDataUrl(person) {
     ctx.fill();
   });
 
-  if (stage !== "bebe" && stage !== "crianca" && Number(person.age) >= 16 && custom.facialHair !== "none") {
+  if (Number(person.age) >= 18 && custom.facialHair !== "none") {
     ctx.fillStyle = hairColor;
     ctx.globalAlpha = 0.85;
     if (custom.facialHair === "beard") {
@@ -523,7 +524,7 @@ function openAppearanceModal(target = "game") {
   if (target === "setup") {
     modalState.draft = {
       ...setupState.avatarCustom,
-      age: 0,
+      age: 18,
       sex: setupState.sex,
       name: document.getElementById("playerName")?.value.trim() || "Personagem"
     };
@@ -537,7 +538,7 @@ function openAppearanceModal(target = "game") {
   } else {
     modalState.draft = {
       ...setupState.avatarCustom,
-      age: 0,
+      age: 18,
       sex: setupState.sex,
       name: "Personagem"
     };
@@ -612,7 +613,7 @@ function saveAppearanceModal() {
 
   const cleanedCustom = {
     diceStyle: modalState.draft.diceStyle || "avataaars",
-    mouthStyle: modalState.draft.mouthStyle || "twinkle",
+    mouthStyle: modalState.draft.mouthStyle || "default",
     presetIndex: modalState.draft.presetIndex,
     skinTone: modalState.draft.skinTone,
     eyeColor: modalState.draft.eyeColor,
@@ -808,7 +809,7 @@ function renderSetupAvatar() {
     name: document.getElementById("playerName")?.value.trim() || "Avatar",
     surname: "",
     sex: setupState.sex,
-    age: 0,
+    age: 18,
     avatarCustom: setupState.avatarCustom
   };
 
@@ -1042,7 +1043,8 @@ function renderGameUI() {
 function advanceYear() {
   if (!gameState) return;
 
-  const prevStage = getLifeStage(gameState.age);
+  const prevAge = gameState.age;
+  const prevStage = getLifeStage(prevAge);
   gameState.age += 1;
 
   gameState.family = gameState.family.map((m) => ({
@@ -1061,6 +1063,10 @@ function advanceYear() {
       gameState.job = "Estagiário / Trabalhador";
     }
     gameState.money += gameState.salary;
+  }
+
+  if (prevAge < 18 && gameState.age >= 18 && gameState.avatarCustom?.facialHair !== "none") {
+    pushEvent("Completou 18 anos e a barba cresceu!");
   }
 
   const nextStage = getLifeStage(gameState.age);
