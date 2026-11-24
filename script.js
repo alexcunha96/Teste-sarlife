@@ -297,24 +297,28 @@ function getLayerAssetUrls(person) {
   ].filter((item) => Boolean(item.src));
 }
 
-function drawHairStrands(ctx, style, hairColor, stage) {
-  const darkStrand = shadeHexColor(hairColor, -34);
-  const lightStrand = shadeHexColor(hairColor, 28);
+function drawNaturalHair(ctx, style, hairColor, stage) {
+  const darkHair = shadeHexColor(hairColor, -28);
+  const lightHair = shadeHexColor(hairColor, 24);
+
+  const grad = ctx.createLinearGradient(-60, -96, 60, 15);
+  grad.addColorStop(0, lightHair);
+  grad.addColorStop(0.5, hairColor);
+  grad.addColorStop(1, darkHair);
 
   ctx.save();
-  ctx.lineJoin = "miter";
   ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
   if (stage === "bebe") {
     ctx.fillStyle = hairColor;
-    ctx.strokeStyle = darkStrand;
-    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = darkHair;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-10, -82);
-    ctx.lineTo(-4, -104);
-    ctx.lineTo(2, -85);
-    ctx.lineTo(9, -102);
-    ctx.lineTo(12, -82);
+    ctx.moveTo(-8, -82);
+    ctx.quadraticCurveTo(-14, -98, -2, -102);
+    ctx.quadraticCurveTo(4, -90, 6, -101);
+    ctx.quadraticCurveTo(15, -94, 8, -82);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -322,123 +326,111 @@ function drawHairStrands(ctx, style, hairColor, stage) {
     return;
   }
 
-  const spikes = style === "buzz" ? 9 : 13;
-  const startX = -62;
-  const endX = 62;
-  const stepX = (endX - startX) / spikes;
-  const baseY = style === "buzz" ? -52 : -62;
-  const tipHeight = style === "buzz" ? 14 : 26;
-
-  ctx.fillStyle = hairColor;
-  ctx.strokeStyle = darkStrand;
-  ctx.lineWidth = 2.4;
-
-  ctx.beginPath();
-  ctx.moveTo(startX, -28);
-  for (let i = 0; i < spikes; i++) {
-    const x1 = startX + i * stepX;
-    const xMid = x1 + stepX * 0.5;
-    const x2 = x1 + stepX;
-    const peakY = i % 2 === 0 ? baseY - tipHeight : baseY - tipHeight * 0.55;
-    ctx.lineTo(x1, baseY);
-    ctx.lineTo(xMid, peakY);
-    ctx.lineTo(x2, baseY);
-  }
-  ctx.lineTo(endX, -28);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  const fringeCount = style === "buzz" ? 5 : 9;
-  const fringeStart = -48;
-  const fringeWidth = 96 / fringeCount;
-
-  ctx.strokeStyle = darkStrand;
-  ctx.fillStyle = lightStrand;
-  ctx.lineWidth = 2;
-
-  for (let f = 0; f < fringeCount; f++) {
-    const fx1 = fringeStart + f * fringeWidth;
-    const fxMid = fx1 + fringeWidth * 0.5;
-    const fx2 = fx1 + fringeWidth;
-    const fyDown = style === "buzz" ? -44 : f % 2 === 0 ? -34 : -41;
-
-    ctx.beginPath();
-    ctx.moveTo(fx1, -56);
-    ctx.lineTo(fxMid, fyDown);
-    ctx.lineTo(fx2, -56);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
+  // Volume principal da cabeça (deixando a testa e o rosto bem equilibrados)
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = darkHair;
+  ctx.lineWidth = 2.2;
 
   if (style === "long") {
-    ctx.fillStyle = hairColor;
-    ctx.strokeStyle = darkStrand;
-    ctx.lineWidth = 2.4;
-
     ctx.beginPath();
-    ctx.moveTo(-62, -48);
-    ctx.lineTo(-68, 66);
-    ctx.lineTo(-54, 52);
-    ctx.lineTo(-46, 70);
-    ctx.lineTo(-38, 44);
-    ctx.lineTo(-36, -35);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(62, -48);
-    ctx.lineTo(68, 66);
-    ctx.lineTo(54, 52);
-    ctx.lineTo(46, 70);
-    ctx.lineTo(38, 44);
-    ctx.lineTo(36, -35);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  } else if (style === "medium") {
-    ctx.fillStyle = hairColor;
-    ctx.strokeStyle = darkStrand;
-    ctx.lineWidth = 2.2;
-
-    ctx.beginPath();
-    ctx.moveTo(-62, -48);
-    ctx.lineTo(-65, 6);
-    ctx.lineTo(-52, -4);
-    ctx.lineTo(-44, 10);
-    ctx.lineTo(-38, -35);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(62, -48);
-    ctx.lineTo(65, 6);
-    ctx.lineTo(52, -4);
-    ctx.lineTo(44, 10);
-    ctx.lineTo(38, -35);
+    ctx.moveTo(-61, -36);
+    ctx.bezierCurveTo(-66, -88, -24, -96, 0, -94);
+    ctx.bezierCurveTo(28, -96, 66, -86, 61, -36);
+    ctx.lineTo(65, 58);
+    ctx.quadraticCurveTo(50, 64, 42, 46);
+    ctx.lineTo(40, -24);
+    ctx.lineTo(-40, -24);
+    ctx.lineTo(-42, 46);
+    ctx.quadraticCurveTo(-50, 64, -65, 58);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
   } else if (style === "ponytail") {
-    ctx.fillStyle = hairColor;
-    ctx.strokeStyle = darkStrand;
-    ctx.lineWidth = 2.4;
-
     ctx.beginPath();
-    ctx.moveTo(46, -64);
-    ctx.lineTo(88, -68);
-    ctx.lineTo(74, -50);
-    ctx.lineTo(92, -40);
-    ctx.lineTo(68, -34);
-    ctx.lineTo(48, -42);
+    ctx.moveTo(-59, -38);
+    ctx.bezierCurveTo(-62, -86, -20, -94, 2, -90);
+    ctx.bezierCurveTo(32, -92, 58, -76, 59, -38);
+    ctx.quadraticCurveTo(34, -56, 0, -56);
+    ctx.quadraticCurveTo(-34, -56, -59, -38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Rabo de cavalo lateral fluido
+    ctx.beginPath();
+    ctx.moveTo(42, -74);
+    ctx.bezierCurveTo(78, -82, 92, -46, 76, -14);
+    ctx.bezierCurveTo(68, -28, 62, -46, 44, -56);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if (style === "buzz") {
+    ctx.beginPath();
+    ctx.moveTo(-58, -40);
+    ctx.bezierCurveTo(-58, -78, -24, -84, 0, -83);
+    ctx.bezierCurveTo(24, -84, 58, -78, 58, -40);
+    ctx.quadraticCurveTo(28, -54, 0, -54);
+    ctx.quadraticCurveTo(-28, -54, -58, -40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if (style === "medium") {
+    ctx.beginPath();
+    ctx.moveTo(-61, -34);
+    ctx.bezierCurveTo(-65, -88, -22, -96, 2, -93);
+    ctx.bezierCurveTo(32, -95, 65, -84, 61, -34);
+    ctx.quadraticCurveTo(56, 2, 44, 6);
+    ctx.lineTo(40, -48);
+    ctx.quadraticCurveTo(0, -58, -40, -48);
+    ctx.lineTo(-44, 6);
+    ctx.quadraticCurveTo(-56, 2, -61, -34);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    // Cabelo curto com franja suave diagonal
+    ctx.beginPath();
+    ctx.moveTo(-59, -38);
+    ctx.bezierCurveTo(-62, -86, -20, -94, 4, -91);
+    ctx.bezierCurveTo(32, -92, 60, -78, 59, -38);
+    ctx.quadraticCurveTo(36, -54, 10, -48);
+    ctx.quadraticCurveTo(-18, -56, -59, -38);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
   }
 
+  // Mechas e fios suaves (sem dentes em ziguezague rígidos)
+  const strokes = style === "buzz" ? 8 : 13;
+  for (let i = 0; i < strokes; i++) {
+    const t = strokes === 1 ? 0.5 : i / (strokes - 1);
+    const sx = -46 + t * 92;
+    const sy = style === "buzz" ? -72 : -82 + Math.sin(t * Math.PI) * -6;
+    const ex = sx + (t - 0.5) * 14;
+    const ey = sy + (style === "buzz" ? 12 : style === "long" ? 32 : 22);
+
+    ctx.strokeStyle = i % 2 === 0 ? lightHair : darkHair;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = style === "buzz" ? 1.5 : 2;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo((sx + ex) * 0.5 + 4, (sy + ey) * 0.5, ex, ey);
+    ctx.stroke();
+  }
+
+  if (style === "long") {
+    ctx.strokeStyle = darkHair;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 2;
+    [-53, -47, 47, 53].forEach((lx) => {
+      ctx.beginPath();
+      ctx.moveTo(lx, -22);
+      ctx.quadraticCurveTo(lx + (lx < 0 ? -3 : 3), 18, lx, 52);
+      ctx.stroke();
+    });
+  }
+
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
@@ -468,81 +460,83 @@ function generateFallbackLayerDataUrl(layerSpec) {
     const skinDark = shadeHexColor(custom.skinTone, -22);
     const skinLight = shadeHexColor(custom.skinTone, 14);
 
-    const neckGrad = ctx.createLinearGradient(0, 28, 0, 76);
+    // Pescoço
+    const neckGrad = ctx.createLinearGradient(0, 28, 0, 78);
     neckGrad.addColorStop(0, skinDark);
     neckGrad.addColorStop(0.35, custom.skinTone);
     neckGrad.addColorStop(1, skinDark);
     ctx.fillStyle = neckGrad;
-    drawRoundedBox(ctx, -22, 28, 44, 48, 12);
+    drawRoundedBox(ctx, -21, 28, 42, 50, 12);
     ctx.fill();
 
-    [-58, 58].forEach((ex, idx) => {
+    // Orelhas
+    [-57, 57].forEach((ex, idx) => {
       const dir = idx === 0 ? -1 : 1;
       ctx.fillStyle = skinDark;
       ctx.beginPath();
-      ctx.ellipse(ex, -16, 11, 17, dir * 0.12, 0, Math.PI * 2);
+      ctx.ellipse(ex, -14, 10, 16, dir * 0.1, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.arc(ex + dir * 1, -16, 6, 0.5, Math.PI * 1.65);
+      ctx.arc(ex + dir * 1, -14, 5.5, 0.5, Math.PI * 1.6);
       ctx.stroke();
     });
 
-    const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -18, 76);
+    // Rosto
+    const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -16, 76);
     faceGrad.addColorStop(0, skinLight);
     faceGrad.addColorStop(0.65, custom.skinTone);
     faceGrad.addColorStop(1, skinDark);
     ctx.fillStyle = faceGrad;
     ctx.beginPath();
-    ctx.ellipse(0, -18, 58, 70, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -16, 57, 68, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "rgba(180, 70, 70, 0.12)";
+    // Rubor suave nas bochechas
+    ctx.fillStyle = "rgba(190, 75, 75, 0.11)";
     ctx.beginPath();
-    ctx.ellipse(-32, -8, 12, 7, 0, 0, Math.PI * 2);
-    ctx.ellipse(32, -8, 12, 7, 0, 0, Math.PI * 2);
+    ctx.ellipse(-31, -6, 11, 6.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(31, -6, 11, 6.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = shadeHexColor(custom.skinTone, -30);
-    ctx.lineWidth = 2.4;
+    // Nariz
+    ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
+    ctx.lineWidth = 2.2;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(2, -24);
+    ctx.moveTo(1, -22);
     ctx.lineTo(-4, 2);
-    ctx.quadraticCurveTo(0, 8, 8, 5);
+    ctx.quadraticCurveTo(0, 7, 7, 4);
     ctx.stroke();
 
     ctx.fillStyle = skinLight;
     ctx.beginPath();
-    ctx.arc(2, 2, 3.2, 0, Math.PI * 2);
+    ctx.arc(1, 2, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = shadeHexColor(custom.skinTone, -42);
-    ctx.lineWidth = 2.5;
+    // Boca bem visível na zona inferior do rosto
+    ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
+    ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.moveTo(-15, 24);
-    ctx.quadraticCurveTo(0, 29, 15, 24);
+    ctx.moveTo(-14, 22);
+    ctx.quadraticCurveTo(0, 27, 14, 22);
     ctx.stroke();
 
-    ctx.fillStyle = shadeHexColor(custom.skinTone, -28);
+    ctx.fillStyle = "#c96a64";
     ctx.beginPath();
-    ctx.ellipse(0, 29, 10, 4.5, 0, 0, Math.PI);
+    ctx.ellipse(0, 25, 9, 3.8, 0, 0, Math.PI);
     ctx.fill();
 
     if (stage === "idoso") {
-      ctx.strokeStyle = "rgba(15, 23, 42, 0.28)";
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.25)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(-36, -24);
-      ctx.lineTo(-42, -20);
-      ctx.moveTo(-36, -18);
-      ctx.lineTo(-41, -15);
-      ctx.moveTo(36, -24);
-      ctx.lineTo(42, -20);
-      ctx.moveTo(36, -18);
-      ctx.lineTo(41, -15);
+      ctx.moveTo(-35, -22);
+      ctx.lineTo(-41, -19);
+      ctx.moveTo(35, -22);
+      ctx.lineTo(41, -19);
       ctx.stroke();
     }
   } else if (layerSpec.layer === "outfit") {
@@ -557,8 +551,8 @@ function generateFallbackLayerDataUrl(layerSpec) {
     ctx.fillStyle = torsoGrad;
     ctx.beginPath();
     ctx.moveTo(-98, 145);
-    ctx.quadraticCurveTo(-84, 62, -26, 54);
-    ctx.quadraticCurveTo(0, 68, 26, 54);
+    ctx.quadraticCurveTo(-84, 62, -25, 54);
+    ctx.quadraticCurveTo(0, 68, 25, 54);
     ctx.quadraticCurveTo(84, 62, 98, 145);
     ctx.closePath();
     ctx.fill();
@@ -566,17 +560,17 @@ function generateFallbackLayerDataUrl(layerSpec) {
     ctx.strokeStyle = clothDark;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(0, 52, 26, 0.15, Math.PI - 0.15);
+    ctx.arc(0, 52, 25, 0.15, Math.PI - 0.15);
     ctx.stroke();
 
     if (custom.outfit === "smart") {
       ctx.fillStyle = "#f1f5f9";
       ctx.beginPath();
-      ctx.moveTo(-22, 54);
+      ctx.moveTo(-21, 54);
       ctx.lineTo(-6, 78);
       ctx.lineTo(0, 62);
       ctx.lineTo(6, 78);
-      ctx.lineTo(22, 54);
+      ctx.lineTo(21, 54);
       ctx.closePath();
       ctx.fill();
     } else if (custom.outfit === "hoodie") {
@@ -602,11 +596,11 @@ function generateFallbackLayerDataUrl(layerSpec) {
     ctx.save();
     ctx.strokeStyle = "#0f172a";
     ctx.fillStyle = "#0f172a";
-    ctx.lineWidth = 2.6;
+    ctx.lineWidth = 2.5;
 
     if (custom.tattoo === "star") {
       ctx.beginPath();
-      ctx.arc(64, 96, 8, 0, Math.PI * 2);
+      ctx.arc(64, 96, 7.5, 0, Math.PI * 2);
       ctx.fill();
     } else if (custom.tattoo === "sleeve") {
       ctx.beginPath();
@@ -617,110 +611,109 @@ function generateFallbackLayerDataUrl(layerSpec) {
       ctx.stroke();
     } else if (custom.tattoo === "tribal") {
       ctx.beginPath();
-      ctx.arc(66, 98, 9, 0.3, Math.PI * 1.65);
+      ctx.arc(66, 98, 8.5, 0.3, Math.PI * 1.65);
       ctx.stroke();
     }
     ctx.restore();
   } else if (layerSpec.layer === "eyes") {
     [-22, 22].forEach((x) => {
-      ctx.fillStyle = "rgba(15, 23, 42, 0.16)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.14)";
       ctx.beginPath();
-      ctx.ellipse(x, -26, 13.5, 8.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, -24, 13.5, 8.5, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "#f8fafc";
       ctx.beginPath();
-      ctx.ellipse(x, -25, 12, 7.2, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, -23, 12.2, 7.4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      const irisGrad = ctx.createRadialGradient(x, -25, 1, x, -25, 6.2);
+      const irisGrad = ctx.createRadialGradient(x, -23, 1, x, -23, 6.4);
       irisGrad.addColorStop(0, shadeHexColor(custom.eyeColor, 25));
       irisGrad.addColorStop(0.75, custom.eyeColor);
       irisGrad.addColorStop(1, shadeHexColor(custom.eyeColor, -35));
       ctx.fillStyle = irisGrad;
       ctx.beginPath();
-      ctx.arc(x, -25, 6.2, 0, Math.PI * 2);
+      ctx.arc(x, -23, 6.4, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "#090d16";
       ctx.beginPath();
-      ctx.arc(x, -25, 2.7, 0, Math.PI * 2);
+      ctx.arc(x, -23, 2.8, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.arc(x - 2.2, -27.5, 1.8, 0, Math.PI * 2);
+      ctx.arc(x - 2.2, -25.5, 1.8, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(x, -25, 12, 7.2, 0, Math.PI * 1.05, Math.PI * 1.95);
+      ctx.ellipse(x, -23, 12.2, 7.4, 0, Math.PI * 1.05, Math.PI * 1.95);
       ctx.stroke();
     });
   } else if (layerSpec.layer === "brows") {
     ctx.strokeStyle = hairColor;
     ctx.lineCap = "round";
-    const thick = custom.browStyle === "thick" ? 5.2 : custom.browStyle === "soft" ? 3 : 3.8;
+    const thick = custom.browStyle === "thick" ? 5 : custom.browStyle === "soft" ? 3 : 3.8;
     ctx.lineWidth = thick;
 
     [-1, 1].forEach((dir) => {
       const x1 = dir * 10;
       const x2 = dir * 35;
-      const yLift = custom.browStyle === "arch" ? -48 : -40;
+      const yLift = custom.browStyle === "arch" ? -45 : -37;
 
       ctx.beginPath();
-      ctx.moveTo(x1, -39);
-      ctx.quadraticCurveTo(dir * 22, yLift, x2, -38);
+      ctx.moveTo(x1, -36);
+      ctx.quadraticCurveTo(dir * 22, yLift, x2, -35);
       ctx.stroke();
-
-      ctx.lineWidth = 1.4;
-      for (let h = 0; h < 4; h++) {
-        const hx = x1 + (x2 - x1) * (h / 3);
-        ctx.beginPath();
-        ctx.moveTo(hx, -39);
-        ctx.lineTo(hx + dir * 2, -44);
-        ctx.stroke();
-      }
-      ctx.lineWidth = thick;
     });
   } else if (layerSpec.layer === "facialHair") {
+    // Barba ajustada para não cobrir a boca
     ctx.save();
+    ctx.fillStyle = hairColor;
+
     if (custom.facialHair === "beard") {
-      ctx.fillStyle = hairColor;
-      ctx.globalAlpha = 0.88;
+      ctx.globalAlpha = 0.86;
+      // Contorno da mandíbula e queixo abaixo da boca + laterais
       ctx.beginPath();
-      ctx.arc(0, 4, 53, 0.2, Math.PI - 0.2);
+      ctx.moveTo(-51, -8);
+      ctx.quadraticCurveTo(-54, 46, 0, 52);
+      ctx.quadraticCurveTo(54, 46, 51, -8);
+      ctx.lineTo(41, -6);
+      ctx.quadraticCurveTo(38, 36, 0, 41);
+      ctx.quadraticCurveTo(-38, 36, -41, -6);
+      ctx.closePath();
       ctx.fill();
 
-      ctx.strokeStyle = shadeHexColor(hairColor, -25);
-      ctx.lineWidth = 1.6;
-      ctx.globalAlpha = 0.65;
-      for (let b = -38; b <= 38; b += 7) {
-        ctx.beginPath();
-        ctx.moveTo(b, 8);
-        ctx.lineTo(b * 0.85, 38);
-        ctx.stroke();
-      }
+      // Bigode acima dos lábios (y entre 10 e 16)
+      drawRoundedBox(ctx, -18, 10, 36, 6, 3);
+      ctx.fill();
     } else if (custom.facialHair === "goatee") {
-      ctx.fillStyle = hairColor;
       ctx.globalAlpha = 0.85;
+      // Pequeno cavanhaque abaixo do lábio inferior
       ctx.beginPath();
-      ctx.ellipse(0, 34, 13, 10, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 36, 11, 7.5, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      drawRoundedBox(ctx, -14, 16, 28, 5, 3);
+      // Bigode discreto acima da boca
+      drawRoundedBox(ctx, -14, 11, 28, 5, 2.5);
       ctx.fill();
     } else if (custom.facialHair === "stubble") {
-      ctx.fillStyle = hairColor;
       ctx.globalAlpha = 0.24;
       ctx.beginPath();
-      ctx.arc(0, 6, 51, 0.25, Math.PI - 0.25);
+      ctx.moveTo(-48, -6);
+      ctx.quadraticCurveTo(-50, 44, 0, 49);
+      ctx.quadraticCurveTo(50, 44, 48, -6);
+      ctx.lineTo(39, -4);
+      ctx.quadraticCurveTo(36, 34, 0, 39);
+      ctx.quadraticCurveTo(-36, 34, -39, -4);
+      ctx.closePath();
       ctx.fill();
     }
     ctx.restore();
   } else if (layerSpec.layer === "hair") {
-    drawHairStrands(ctx, custom.hairStyle, hairColor, stage);
+    drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
   }
 
   ctx.restore();
