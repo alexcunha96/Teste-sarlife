@@ -15,9 +15,9 @@
       <p>A tua vida. As tuas escolhas.</p>
 
       <div id="startForm">
-        <!-- Pré-visualização e Seleção do Avatar Completo -->
+        <!-- Pré-visualização e Seleção do Avatar -->
         <div class="panel" style="margin-top: 10px; background: rgba(0,0,0,0.22); text-align: center;">
-          <h3>🎨 Escolher Avatar 3D</h3>
+          <h3>🎨 Escolher Avatar</h3>
 
           <div class="avatar-stage-circle">
             <img id="setupAvatarImg" src="assets/modules/masculino/avatars/Avatar_masculino_1.png" alt="Avatar">
@@ -29,7 +29,6 @@
             <button type="button" class="avatar-arrow-btn" onclick="changeSetupAvatar(1)">▶</button>
           </div>
 
-          <!-- Género logo abaixo das setas do avatar -->
           <div class="input-group" style="margin-top: 12px; text-align: left;">
             <label>Género</label>
             <select id="playerSex" onchange="onSetupGenderChange()">
@@ -40,7 +39,7 @@
         </div>
 
         <div class="input-group">
-          <label>Nome <small id="nameHint" class="muted">(Ex: João)</small></label>
+          <label>Nome <small id="nameHint" class="muted">(Ex: João, Lucas, Tiago)</small></label>
           <input type="text" id="playerName" placeholder="Escreve o teu nome" value="" required>
         </div>
         <div class="input-group">
@@ -129,7 +128,6 @@
     </header>
 
     <main class="game-body">
-      <!-- Tab: Início -->
       <section id="homeTab" class="tab-content">
         <div class="panel">
           <h3>Estatísticas</h3>
@@ -150,7 +148,6 @@
           <div class="info-row"><span>Doença Atual</span><strong id="illnessValue" style="color: var(--danger-color);">Nenhuma</strong></div>
         </div>
 
-        <!-- Editor Rápido do Avatar -->
         <div class="panel">
           <h3>✂️ Editar Estilo do Avatar</h3>
           <div id="avatarEditorContainer"></div>
@@ -162,7 +159,6 @@
         </div>
       </section>
 
-      <!-- Tab: Património -->
       <section id="patrimonyTab" class="tab-content hidden">
         <div class="panel">
           <h2>💰 Finanças & Património</h2>
@@ -186,7 +182,6 @@
         </div>
       </section>
 
-      <!-- Tab: Carreira, Educação e Negócios -->
       <section id="careerTab" class="tab-content hidden">
         <div class="panel">
           <h2>💼 Carreira, Educação & Negócios</h2>
@@ -220,7 +215,6 @@
         </div>
       </section>
 
-      <!-- Tab: Loja -->
       <section id="shopTab" class="tab-content hidden">
         <div class="sub-nav">
           <button class="sub-btn active" data-sub="shopHousing">🏡 Imobiliário</button>
@@ -235,10 +229,66 @@
         </div>
       </section>
 
-      <!-- Tab: Pessoas / Família -->
       <section id="peopleTab" class="tab-content hidden">
         <div class="panel">
           <h2>👨‍👩‍👧 Família</h2>
           <div id="peopleList" class="people-list"></div>
         </div>
         <div class="panel">
+          <h3>Árvore Genealógica</h3>
+          <div id="familyTree"><p class="muted">Árvore genealógica ativa.</p></div>
+        </div>
+      </section>
+
+      <section id="activitiesTab" class="tab-content hidden">
+        <div class="panel">
+          <h2>🏥 Centro Médico & Especialidades</h2>
+          <p class="muted">Acompanhamento clínico profissional e prevenção.</p>
+          <div class="button-list" style="margin-top: 12px;">
+            <button class="secondary-btn full-width" data-health="familyDoctor">👨‍⚕️ Médico de Família (Check-up)</button>
+            <button class="secondary-btn full-width" data-health="urgency">🚑 Urgências Hospitalares</button>
+            <button class="secondary-btn full-width" data-health="cardiology">❤️ Cardiologia</button>
+            <button class="secondary-btn full-width" data-health="orthopedics">🦴 Ortopedia & Fisioterapia</button>
+            <button class="secondary-btn full-width" data-health="psychiatry">🧠 Psiquiatria & Bem-estar</button>
+            <button class="secondary-btn full-width" data-health="oncology">🎗️ Oncologia (Rastreio e Tratamento)</button>
+          </div>
+        </div>
+        <div id="healthActionContainer"></div>
+      </section>
+    </main>
+
+    <nav id="bottomNav" class="bottom-nav">
+      <button class="nav-btn active" data-tab="homeTab">🏠<span>Início</span></button>
+      <button class="nav-btn" data-tab="patrimonyTab">💰<span>Património</span></button>
+      <button class="nav-btn" data-tab="careerTab">💼<span>Carreira</span></button>
+      <button class="nav-btn" data-tab="shopTab">🛒<span>Loja</span></button>
+      <button class="nav-btn" data-tab="peopleTab">👨‍👩‍👧<span>Pessoas</span></button>
+      <button class="nav-btn" data-tab="activitiesTab">🏃<span>Atividades</span></button>
+    </nav>
+  </div>
+
+  <div id="customModal" class="modal-overlay hidden"></div>
+
+  <div id="deathScreen" class="screen hidden" style="justify-content: center; align-items: center; padding: 20px;">
+    <div class="panel" style="width: 100%; max-width: 440px; text-align: center; background: #142136; border: 2px solid #4a6b9c;">
+      <h2 style="font-size: 2.5rem; margin-bottom: 5px;">⚰️</h2>
+      <div style="background: #1d3150; padding: 25px; border-radius: 12px; border: 1px dashed #6085bd; margin: 15px 0;">
+        <h3 id="tombstoneName" style="font-size: 1.4rem; color: #f8fafc; margin-bottom: 8px;">Nome</h3>
+        <p id="tombstoneYears" class="muted" style="margin-bottom: 15px;">1990 - 2060 (70 anos)</p>
+        <p id="tombstoneQuote" style="font-style: italic; color: #cbd5e1; font-size: 1rem; line-height: 1.4;">"Aqui jaz alguém que viveu intensamente."</p>
+      </div>
+
+      <div style="text-align: left; margin: 15px 0;" id="deathReportStats"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px;">
+        <button id="newLifeBtn" class="primary-btn full-width">✨ Iniciar Nova Vida</button>
+        <button id="continueChildBtn" class="secondary-btn full-width hidden">👶 Continuar com Filho/a</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
