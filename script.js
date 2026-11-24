@@ -17,7 +17,6 @@ const NAME_HINTS = {
 
 const PRESET_CONFIGS = {
   1: {
-    label: "Estilo #1 — Clássico",
     skinTone: "#f2c29b",
     eyeColor: "#2563eb",
     browStyle: "arch",
@@ -29,7 +28,6 @@ const PRESET_CONFIGS = {
     tattoo: "none"
   },
   2: {
-    label: "Estilo #2 — Moderno",
     skinTone: "#d89b6c",
     eyeColor: "#15803d",
     browStyle: "straight",
@@ -41,7 +39,6 @@ const PRESET_CONFIGS = {
     tattoo: "star"
   },
   3: {
-    label: "Estilo #3 — Urbano",
     skinTone: "#8d5524",
     eyeColor: "#5c3a21",
     browStyle: "thick",
@@ -53,7 +50,6 @@ const PRESET_CONFIGS = {
     tattoo: "sleeve"
   },
   4: {
-    label: "Estilo #4 — Elegante",
     skinTone: "#fbe3cf",
     eyeColor: "#0284c7",
     browStyle: "soft",
@@ -204,6 +200,319 @@ let modalState = {
   draft: null
 };
 
+/* --- Motor 3D com Three.js --- */
+const threeViewers = new Map();
+
+function getEffectiveHairColor(person) {
+  const stage = getLifeStage(person.age);
+  const chosen = person.avatarCustom?.hairColor || "#3b2618";
+  if (stage.id === "idoso") {
+    return "#d8dee9";
+  }
+  return chosen;
+}
+
+function createAvatar3DGroup(person) {
+  const THREE = window.THREE;
+  const stage = getLifeStage(person.age);
+  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
+  const hairColor = getEffectiveHairColor(person);
+  const skinTone = custom.skinTone || "#f2c29b";
+  const eyeColor = custom.eyeColor || "#2563eb";
+  const outfitColor = custom.outfitColor || "#3b82f6";
+
+  const root = new THREE.Group();
+
+  const skinMat = new THREE.MeshStandardMaterial({
+    color: skinTone,
+    roughness: 0.55,
+    metalness: 0.05
+  });
+  const outfitMat = new THREE.MeshStandardMaterial({
+    color: outfitColor,
+    roughness: 0.65,
+    metalness: 0.08
+  });
+  const hairMat = new THREE.MeshStandardMaterial({
+    color: hairColor,
+    roughness: 0.5,
+    metalness: 0.1
+  });
+  const eyeWhiteMat = new THREE.MeshStandardMaterial({
+    color: "#ffffff",
+    roughness: 0.2
+  });
+  const irisMat = new THREE.MeshStandardMaterial({
+    color: eyeColor,
+    roughness: 0.25
+  });
+  const darkMat = new THREE.MeshStandardMaterial({
+    color: "#111827",
+    roughness: 0.5
+  });
+
+  // Escala por fase da vida
+  const stageScale =
+    stage.id === "bebe"
+      ? 0.78
+      : stage.id === "crianca"
+      ? 0.88
+      : stage.id === "adolescente"
+      ? 0.95
+      : 1.0;
+
+  // Cabeça 3D
+  const headGeo = new THREE.SphereGeometry(0.68, 32, 32);
+  headGeo.scale(0.92, 1.06, 0.95);
+  const headMesh = new THREE.Mesh(headGeo, skinMat);
+  headMesh.position.set(0, 0.62, 0);
+  root.add(headMesh);
+
+  // Orelhas
+  const earGeo = new THREE.SphereGeometry(0.14, 16, 16);
+  earGeo.scale(0.55, 1.0, 0.85);
+  const leftEar = new THREE.Mesh(earGeo, skinMat);
+  leftEar.position.set(-0.63, 0.6, 0);
+  const rightEar = new THREE.Mesh(earGeo, skinMat);
+  rightEar.position.set(0.63, 0.6, 0);
+  root.add(leftEar, rightEar);
+
+  // Olhos 3D (esclera + íris)
+  const scleraGeo = new THREE.SphereGeometry(0.11, 16, 16);
+  scleraGeo.scale(1.15, 0.85, 0.6);
+  const irisGeo = new THREE.SphereGeometry(0.062, 14, 14);
+  irisGeo.scale(1, 1, 0.65);
+
+  const leftEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
+  leftEyeWhite.position.set(-0.23, 0.66, 0.58);
+  const rightEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
+  rightEyeWhite.position.set(0.23, 0.66, 0.58);
+
+  const leftIris = new THREE.Mesh(irisGeo, irisMat);
+  leftIris.position.set(-0.23, 0.66, 0.62);
+  const rightIris = new THREE.Mesh(irisGeo, irisMat);
+  rightIris.position.set(0.23, 0.66, 0.62);
+  root.add(leftEyeWhite, rightEyeWhite, leftIris, rightIris);
+
+  // Sobrancelhas 3D
+  const browGeo = new THREE.BoxGeometry(0.24, custom.browStyle === "thick" ? 0.08 : 0.05, 0.08);
+  const leftBrow = new THREE.Mesh(browGeo, hairMat);
+  leftBrow.position.set(-0.23, 0.83, 0.58);
+  leftBrow.rotation.z = custom.browStyle === "arch" ? 0.12 : 0;
+
+  const rightBrow = new THREE.Mesh(browGeo, hairMat);
+  rightBrow.position.set(0.23, 0.83, 0.58);
+  rightBrow.rotation.z = custom.browStyle === "arch" ? -0.12 : 0;
+  root.add(leftBrow, rightBrow);
+
+  // Nariz 3D
+  const noseGeo = new THREE.ConeGeometry(0.09, 0.2, 12);
+  const noseMesh = new THREE.Mesh(noseGeo, skinMat);
+  noseMesh.position.set(0, 0.57, 0.67);
+  noseMesh.rotation.x = Math.PI * 0.42;
+  root.add(noseMesh);
+
+  // Boca 3D
+  const mouthGeo = new THREE.TorusGeometry(0.14, 0.032, 10, 20, Math.PI);
+  const mouthMat = new THREE.MeshStandardMaterial({ color: "#9b4d3f", roughness: 0.4 });
+  const mouthMesh = new THREE.Mesh(mouthGeo, mouthMat);
+  mouthMesh.position.set(0, 0.37, 0.6);
+  mouthMesh.rotation.x = Math.PI;
+  root.add(mouthMesh);
+
+  // Barba / pelo facial (a partir dos 14 anos)
+  if (Number(person.age) >= 14 && custom.facialHair && custom.facialHair !== "none") {
+    if (custom.facialHair === "beard") {
+      const beardGeo = new THREE.SphereGeometry(0.67, 24, 24, 0, Math.PI * 2, Math.PI * 0.48, Math.PI * 0.52);
+      beardGeo.scale(0.93, 1.0, 0.96);
+      const beardMesh = new THREE.Mesh(beardGeo, hairMat);
+      beardMesh.position.set(0, 0.58, 0.03);
+      root.add(beardMesh);
+    } else if (custom.facialHair === "goatee") {
+      const goateeGeo = new THREE.ConeGeometry(0.16, 0.25, 14);
+      const goateeMesh = new THREE.Mesh(goateeGeo, hairMat);
+      goateeMesh.position.set(0, 0.23, 0.6);
+      goateeMesh.rotation.x = Math.PI;
+      root.add(goateeMesh);
+    } else if (custom.facialHair === "stubble") {
+      const stubbleGeo = new THREE.SphereGeometry(0.66, 20, 20, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45);
+      const stubbleMat = new THREE.MeshStandardMaterial({
+        color: hairColor,
+        transparent: true,
+        opacity: 0.28,
+        roughness: 0.8
+      });
+      const stubbleMesh = new THREE.Mesh(stubbleGeo, stubbleMat);
+      stubbleMesh.position.set(0, 0.59, 0.02);
+      root.add(stubbleMesh);
+    }
+  }
+
+  // Cabelo 3D
+  if (stage.id === "bebe") {
+    const tuftGeo = new THREE.ConeGeometry(0.12, 0.22, 12);
+    const tuft = new THREE.Mesh(tuftGeo, hairMat);
+    tuft.position.set(0, 1.38, 0.04);
+    root.add(tuft);
+  } else if (custom.hairStyle === "long") {
+    const capGeo = new THREE.SphereGeometry(0.72, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.65);
+    const capMesh = new THREE.Mesh(capGeo, hairMat);
+    capMesh.position.set(0, 0.66, -0.02);
+
+    const backGeo = new THREE.CylinderGeometry(0.56, 0.64, 1.35, 20);
+    const backMesh = new THREE.Mesh(backGeo, hairMat);
+    backMesh.position.set(0, 0.12, -0.22);
+    root.add(capMesh, backMesh);
+  } else if (custom.hairStyle === "ponytail") {
+    const capGeo = new THREE.SphereGeometry(0.71, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.58);
+    const capMesh = new THREE.Mesh(capGeo, hairMat);
+    capMesh.position.set(0, 0.66, 0);
+
+    const tailGeo = new THREE.ConeGeometry(0.24, 0.85, 16);
+    const tailMesh = new THREE.Mesh(tailGeo, hairMat);
+    tailMesh.position.set(0, 0.68, -0.78);
+    tailMesh.rotation.x = -Math.PI * 0.35;
+    root.add(capMesh, tailMesh);
+  } else if (custom.hairStyle === "buzz") {
+    const buzzGeo = new THREE.SphereGeometry(0.695, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
+    const buzzMesh = new THREE.Mesh(buzzGeo, hairMat);
+    buzzMesh.position.set(0, 0.64, 0);
+    root.add(buzzMesh);
+  } else if (custom.hairStyle === "medium") {
+    const medGeo = new THREE.SphereGeometry(0.73, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.62);
+    const medMesh = new THREE.Mesh(medGeo, hairMat);
+    medMesh.position.set(0, 0.65, -0.02);
+    root.add(medMesh);
+  } else {
+    const shortGeo = new THREE.SphereGeometry(0.71, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.56);
+    const shortMesh = new THREE.Mesh(shortGeo, hairMat);
+    shortMesh.position.set(0, 0.66, 0.02);
+    root.add(shortMesh);
+  }
+
+  // Pescoço e Tronco / Roupa 3D
+  const neckGeo = new THREE.CylinderGeometry(0.22, 0.25, 0.32, 16);
+  const neckMesh = new THREE.Mesh(neckGeo, skinMat);
+  neckMesh.position.set(0, -0.08, 0);
+  root.add(neckMesh);
+
+  const torsoGeo = new THREE.CylinderGeometry(0.56, 0.66, 1.15, 24);
+  const torsoMesh = new THREE.Mesh(torsoGeo, outfitMat);
+  torsoMesh.position.set(0, -0.76, 0);
+  root.add(torsoMesh);
+
+  // Braços 3D + Tatuagem (a partir dos 18 anos)
+  const armGeo = new THREE.CylinderGeometry(0.15, 0.13, 0.92, 16);
+  const leftArm = new THREE.Mesh(armGeo, skinMat);
+  leftArm.position.set(-0.78, -0.68, 0);
+  leftArm.rotation.z = -0.14;
+
+  const rightArm = new THREE.Mesh(armGeo, skinMat);
+  rightArm.position.set(0.78, -0.68, 0);
+  rightArm.rotation.z = 0.14;
+
+  // Manga curta da roupa
+  const sleeveGeo = new THREE.CylinderGeometry(0.18, 0.17, 0.36, 16);
+  const leftSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
+  leftSleeve.position.set(-0.72, -0.38, 0);
+  leftSleeve.rotation.z = -0.14;
+
+  const rightSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
+  rightSleeve.position.set(0.72, -0.38, 0);
+  rightSleeve.rotation.z = 0.14;
+
+  root.add(leftArm, rightArm, leftSleeve, rightSleeve);
+
+  if (Number(person.age) >= 18 && custom.tattoo && custom.tattoo !== "none") {
+    const tatGeo =
+      custom.tattoo === "sleeve"
+        ? new THREE.CylinderGeometry(0.156, 0.142, 0.42, 16, 1, true)
+        : new THREE.SphereGeometry(0.08, 12, 12);
+    const tatMat = new THREE.MeshStandardMaterial({
+      color: "#0f172a",
+      roughness: 0.7,
+      side: THREE.DoubleSide
+    });
+    const tatMesh = new THREE.Mesh(tatGeo, tatMat);
+    tatMesh.position.set(0.81, -0.76, 0.04);
+    root.add(tatMesh);
+  }
+
+  root.scale.setScalar(stageScale);
+  root.position.set(0, -0.1, 0);
+  return root;
+}
+
+function mount3DAvatar(container, person, options = {}) {
+  const THREE = window.THREE;
+  if (!container || !THREE) return;
+
+  const size = options.size || Math.max(container.clientWidth, container.clientHeight, 128);
+  let entry = threeViewers.get(container);
+
+  if (!entry) {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+    camera.position.set(0, 0.15, 3.95);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "low-power"
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(size, size, false);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.95);
+    const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
+    keyLight.position.set(2.2, 3.2, 3.5);
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.65);
+    rimLight.position.set(-2.5, 1.5, -2.0);
+
+    scene.add(ambient, keyLight, rimLight);
+
+    container.innerHTML = "";
+    container.appendChild(renderer.domElement);
+
+    entry = { scene, camera, renderer, avatarGroup: null, animId: null };
+    threeViewers.set(container, entry);
+
+    const animate = () => {
+      entry.animId = requestAnimationFrame(animate);
+      if (entry.avatarGroup) {
+        entry.avatarGroup.rotation.y = Math.sin(Date.now() * 0.0012) * 0.24;
+      }
+      entry.renderer.render(entry.scene, entry.camera);
+    };
+    animate();
+  }
+
+  if (entry.avatarGroup) {
+    entry.scene.remove(entry.avatarGroup);
+  }
+  entry.renderer.setSize(size, size, false);
+  entry.avatarGroup = createAvatar3DGroup(person);
+  entry.scene.add(entry.avatarGroup);
+  entry.renderer.render(entry.scene, entry.camera);
+}
+
+/* --- Estado e Funções do Jogo --- */
+let setupState = {
+  sex: "Masculino",
+  presetIndex: 1,
+  avatarCustom: createDefaultAvatarCustom("Masculino", 1),
+  family: []
+};
+
+let gameState = null;
+
+let modalState = {
+  isOpen: false,
+  target: "game",
+  category: "hair",
+  draft: null
+};
+
 function showToast(msg) {
   const toast = document.getElementById("toast");
   if (!toast) return;
@@ -244,261 +553,7 @@ function loadSavedGame() {
   }
 }
 
-function getEffectiveHairColor(person) {
-  const stage = getLifeStage(person.age);
-  const chosen = person.avatarCustom?.hairColor || "#3b2618";
-  if (stage.id === "idoso") {
-    return "#d8dee9";
-  }
-  return chosen;
-}
-
-function darkenOrLighten(hex, amount = -24) {
-  const clean = (hex || "#888888").replace("#", "");
-  if (clean.length !== 6) return hex;
-  const num = parseInt(clean, 16);
-  const r = Math.min(255, Math.max(0, ((num >> 16) & 255) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 255) + amount));
-  const b = Math.min(255, Math.max(0, (num & 255) + amount));
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-}
-
-function renderEyesSVG(eyeColor, cy) {
-  return `
-    <g>
-      <ellipse cx="42.5" cy="${cy}" rx="4.4" ry="3.2" fill="#ffffff" />
-      <circle cx="42.5" cy="${cy}" r="2.4" fill="${eyeColor}" />
-      <circle cx="42.5" cy="${cy}" r="1.15" fill="#0f172a" />
-      <circle cx="43.4" cy="${cy - 0.9}" r="0.75" fill="#ffffff" />
-
-      <ellipse cx="57.5" cy="${cy}" rx="4.4" ry="3.2" fill="#ffffff" />
-      <circle cx="57.5" cy="${cy}" r="2.4" fill="${eyeColor}" />
-      <circle cx="57.5" cy="${cy}" r="1.15" fill="#0f172a" />
-      <circle cx="58.4" cy="${cy - 0.9}" r="0.75" fill="#ffffff" />
-    </g>
-  `;
-}
-
-function renderBrowsSVG(browStyle, hairColor, cy) {
-  const strokeW = browStyle === "thick" ? 2.7 : browStyle === "soft" ? 1.5 : 2.1;
-  if (browStyle === "straight") {
-    return `
-      <line x1="38" y1="${cy - 5.5}" x2="46.5" y2="${cy - 5.5}" stroke="${hairColor}" stroke-width="${strokeW}" stroke-linecap="round" />
-      <line x1="53.5" y1="${cy - 5.5}" x2="62" y2="${cy - 5.5}" stroke="${hairColor}" stroke-width="${strokeW}" stroke-linecap="round" />
-    `;
-  }
-  return `
-    <path d="M38 ${cy - 5} Q42.5 ${cy - 8.2} 47 ${cy - 5.2}" fill="none" stroke="${hairColor}" stroke-width="${strokeW}" stroke-linecap="round" />
-    <path d="M53 ${cy - 5.2} Q57.5 ${cy - 8.2} 62 ${cy - 5}" fill="none" stroke="${hairColor}" stroke-width="${strokeW}" stroke-linecap="round" />
-  `;
-}
-
-function renderFacialHairSVG(facialHair, hairColor, age, cy) {
-  if (!facialHair || facialHair === "none" || Number(age) < 14) {
-    return "";
-  }
-  const shade = darkenOrLighten(hairColor, -14);
-  if (facialHair === "stubble") {
-    return `
-      <g fill="${shade}" opacity="0.34">
-        <circle cx="38" cy="${cy + 9}" r="0.8" />
-        <circle cx="41" cy="${cy + 11}" r="0.8" />
-        <circle cx="45" cy="${cy + 13}" r="0.8" />
-        <circle cx="50" cy="${cy + 14}" r="0.8" />
-        <circle cx="55" cy="${cy + 13}" r="0.8" />
-        <circle cx="59" cy="${cy + 11}" r="0.8" />
-        <circle cx="62" cy="${cy + 9}" r="0.8" />
-      </g>
-    `;
-  }
-  if (facialHair === "goatee") {
-    return `
-      <path d="M45 ${cy + 5.5} Q50 ${cy + 4} 55 ${cy + 5.5} Q50 ${cy + 7.5} 45 ${cy + 5.5} Z" fill="${shade}" opacity="0.85" />
-      <path d="M46.5 ${cy + 11} Q50 ${cy + 17.5} 53.5 ${cy + 11} Q50 ${cy + 13} 46.5 ${cy + 11} Z" fill="${shade}" opacity="0.85" />
-    `;
-  }
-  if (facialHair === "beard") {
-    return `
-      <path d="M34.5 ${cy + 2} C34.5 ${cy + 15}, 42 ${cy + 20.5}, 50 ${cy + 20.5} C58 ${cy + 20.5}, 65.5 ${cy + 15}, 65.5 ${cy + 2} C62.5 ${cy + 10}, 57 ${cy + 13}, 50 ${cy + 13} C43 ${cy + 13}, 37.5 ${cy + 10}, 34.5 ${cy + 2} Z" fill="${shade}" opacity="0.88" />
-    `;
-  }
-  return "";
-}
-
-function renderHairSVG(hairStyle, hairColor, stageId) {
-  const highlight = darkenOrLighten(hairColor, 26);
-  const shadow = darkenOrLighten(hairColor, -24);
-
-  if (stageId === "bebe") {
-    return `
-      <path d="M44.5 24 Q50 15 55.5 24 Q52.5 29 48 27 Z" fill="${hairColor}" />
-      <path d="M47 22 Q50 17.5 53 22" fill="none" stroke="${highlight}" stroke-width="1.2" stroke-linecap="round" />
-    `;
-  }
-
-  switch (hairStyle) {
-    case "long":
-      return `
-        <path d="M25 46 C25 18, 75 18, 75 46 L78 86 L64 86 L62 49 C62 34, 38 34, 38 49 L36 86 L22 86 Z" fill="${shadow}" />
-        <path d="M27 45 C27 20, 73 20, 73 45 L75 84 L65 84 L63 48 C63 34, 37 34, 37 48 L35 84 L25 84 Z" fill="${hairColor}" />
-        <path d="M33 32 Q50 16 67 32" fill="none" stroke="${highlight}" stroke-width="2" stroke-linecap="round" opacity="0.7" />
-      `;
-    case "ponytail":
-      return `
-        <path d="M31 38 C31 19, 69 19, 69 38 C69 29, 31 29, 31 38 Z" fill="${hairColor}" />
-        <path d="M66 29 C86 24, 89 50, 75 65 C74 49, 69 40, 63 36 Z" fill="${shadow}" />
-        <path d="M65 28 C82 24, 85 47, 73 61 C72 47, 68 39, 62 35 Z" fill="${hairColor}" />
-        <circle cx="65" cy="32" r="2.6" fill="#e11d48" />
-      `;
-    case "buzz":
-      return `
-        <path d="M33 38 C33 21, 67 21, 67 38 C60 27, 40 27, 33 38 Z" fill="${hairColor}" />
-        <path d="M37 29 Q50 22 63 29" fill="none" stroke="${highlight}" stroke-width="1.6" stroke-linecap="round" opacity="0.6" />
-      `;
-    case "medium":
-      return `
-        <path d="M29 44 C29 19, 71 19, 71 44 L72 60 L63 60 L62 43 C62 31, 38 31, 38 43 L37 60 L28 60 Z" fill="${hairColor}" />
-        <path d="M34 31 Q50 18 66 31" fill="none" stroke="${highlight}" stroke-width="1.8" stroke-linecap="round" opacity="0.65" />
-      `;
-    case "short":
-    default:
-      return `
-        <path d="M31 39 C31 19, 69 19, 69 39 C62 28, 38 28, 31 39 Z" fill="${hairColor}" />
-        <path d="M36 30 Q50 20 64 30" fill="none" stroke="${highlight}" stroke-width="1.8" stroke-linecap="round" opacity="0.65" />
-      `;
-  }
-}
-
-function renderOutfitSVG(outfit, outfitColor, skinTone, stageId) {
-  const isChildOrBaby = stageId === "bebe" || stageId === "crianca";
-  const topY = isChildOrBaby ? 67 : 63;
-  const neckShade = darkenOrLighten(skinTone, -22);
-  const shirtShade = darkenOrLighten(outfitColor, -22);
-
-  let shirt = `
-    <path d="M20 100 L25 ${topY} L39 ${topY - 3} Q50 ${topY + 9} 61 ${topY - 3} L75 ${topY} L80 100 Z" fill="${outfitColor}" />
-    <path d="M25 ${topY} L22 100 L29 100 L31 ${topY + 4} Z" fill="${shirtShade}" opacity="0.45" />
-    <path d="M75 ${topY} L78 100 L71 100 L69 ${topY + 4} Z" fill="${shirtShade}" opacity="0.45" />
-  `;
-
-  if (outfit === "smart") {
-    shirt += `
-      <polygon points="43.5,${topY - 3} 50,${topY + 9.5} 42.5,${topY + 13}" fill="#ffffff" />
-      <polygon points="56.5,${topY - 3} 50,${topY + 9.5} 57.5,${topY + 13}" fill="#ffffff" />
-      <polygon points="48.5,${topY + 8} 51.5,${topY + 8} 52.5,98 47.5,98" fill="#1e293b" />
-    `;
-  } else if (outfit === "sport") {
-    shirt += `
-      <line x1="29.5" y1="${topY + 3}" x2="27.5" y2="99" stroke="#ffffff" stroke-width="2.4" opacity="0.85" />
-      <line x1="70.5" y1="${topY + 3}" x2="72.5" y2="99" stroke="#ffffff" stroke-width="2.4" opacity="0.85" />
-    `;
-  } else if (outfit === "hoodie") {
-    shirt += `
-      <path d="M35 ${topY - 2} Q50 ${topY + 12} 65 ${topY - 2}" fill="none" stroke="${shirtShade}" stroke-width="3.2" />
-      <line x1="45" y1="${topY + 5}" x2="45" y2="83" stroke="#f8fafc" stroke-width="1.8" stroke-linecap="round" />
-      <line x1="55" y1="${topY + 5}" x2="55" y2="83" stroke="#f8fafc" stroke-width="1.8" stroke-linecap="round" />
-    `;
-  }
-
-  return `
-    ${shirt}
-    <rect x="44" y="53" width="12" height="12" rx="4" fill="${skinTone}" />
-    <path d="M44 55 Q50 60 56 55 L56 59 Q50 63 44 59 Z" fill="${neckShade}" opacity="0.55" />
-  `;
-}
-
-function renderTattooSVG(tattoo, age) {
-  if (!tattoo || tattoo === "none" || Number(age) < 18) {
-    return "";
-  }
-
-  if (tattoo === "sleeve") {
-    return `
-      <g stroke="#0f172a" stroke-width="2.1" fill="none" opacity="0.82">
-        <path d="M26 72 Q32 76 26 81 Q32 86 26 92" />
-        <path d="M74 72 Q68 76 74 81 Q68 86 74 92" />
-      </g>
-    `;
-  }
-
-  if (tattoo === "star") {
-    return `
-      <polygon points="29,76 30.8,80 35,80.5 32,83.4 32.8,87.5 29,85.4 25.2,87.5 26,83.4 23,80.5 27.2,80"
-        fill="#0f172a" opacity="0.82" />
-    `;
-  }
-
-  if (tattoo === "tribal") {
-    return `
-      <path d="M68 74 L75 80.5 L68 87 L71.5 80.5 Z" fill="#0f172a" opacity="0.82" />
-    `;
-  }
-
-  return "";
-}
-
-function renderAgeDetailsSVG(stageId, cy) {
-  if (stageId === "idoso") {
-    return `
-      <g stroke="#6b4f3f" stroke-width="1.35" fill="none" opacity="0.72" stroke-linecap="round">
-        <path d="M36 ${cy - 4} Q39 ${cy - 6} 42 ${cy - 4}" />
-        <path d="M58 ${cy - 4} Q61 ${cy - 6} 64 ${cy - 4}" />
-        <path d="M36 ${cy + 9} Q38.5 ${cy + 12.5} 41 ${cy + 13.5}" />
-        <path d="M64 ${cy + 9} Q61.5 ${cy + 12.5} 59 ${cy + 13.5}" />
-      </g>
-    `;
-  }
-  return "";
-}
-
-function renderAvatarSVGMarkup(person) {
-  const stage = getLifeStage(person.age);
-  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
-  const hairColor = getEffectiveHairColor(person);
-  const skinTone = custom.skinTone || "#f2c29b";
-  const eyeColor = custom.eyeColor || "#2563eb";
-  const browStyle = custom.browStyle || "arch";
-  const facialHair = custom.facialHair || "none";
-  const outfitColor = custom.outfitColor || "#3b82f6";
-  const fullName = `${person.name || ""} ${person.surname || ""}`.trim() || "Avatar";
-
-  const headRadiusY = stage.id === "bebe" ? 20 : 18.2;
-  const headRadiusX = stage.id === "bebe" ? 19 : 16.5;
-  const headCenterY = stage.id === "bebe" ? 44 : 42;
-  const cheekShade = darkenOrLighten(skinTone, -18);
-  const noseShade = darkenOrLighten(skinTone, -34);
-
-  return `
-    <svg class="svg-avatar-layer" viewBox="0 0 100 100" role="img" aria-label="${fullName}">
-      ${renderOutfitSVG(custom.outfit, outfitColor, skinTone, stage.id)}
-      ${renderTattooSVG(custom.tattoo, person.age)}
-      ${renderHairSVG(custom.hairStyle, hairColor, stage.id)}
-
-      <ellipse cx="${50 - headRadiusX}" cy="${headCenterY + 1}" rx="3.2" ry="5.2" fill="${skinTone}" />
-      <ellipse cx="${50 + headRadiusX}" cy="${headCenterY + 1}" rx="3.2" ry="5.2" fill="${skinTone}" />
-
-      <ellipse cx="50" cy="${headCenterY}" rx="${headRadiusX}" ry="${headRadiusY}" fill="${skinTone}" />
-
-      <ellipse cx="39.5" cy="${headCenterY + 4}" rx="3.5" ry="2.1" fill="${cheekShade}" opacity="0.28" />
-      <ellipse cx="60.5" cy="${headCenterY + 4}" rx="3.5" ry="2.1" fill="${cheekShade}" opacity="0.28" />
-
-      ${renderBrowsSVG(browStyle, hairColor, headCenterY)}
-      ${renderEyesSVG(eyeColor, headCenterY)}
-
-      <path d="M50 ${headCenterY - 1} L48.6 ${headCenterY + 4.5} Q50 ${headCenterY + 5.8} 51.8 ${headCenterY + 4.8}"
-        fill="none" stroke="${noseShade}" stroke-width="1.5" stroke-linecap="round" />
-
-      ${renderFacialHairSVG(facialHair, hairColor, person.age, headCenterY)}
-
-      <path d="M45 ${headCenterY + 9.5} Q50 ${headCenterY + 13} 55 ${headCenterY + 9.5}"
-        stroke="#9b4d3f" stroke-width="2.1" fill="none" stroke-linecap="round" />
-
-      ${renderAgeDetailsSVG(stage.id, headCenterY)}
-    </svg>
-  `;
-}
-
-/* --- Modal Editar Avatar (estilo Appearance com setas laterais) --- */
+/* --- Modal Editar Avatar 3D --- */
 function openAppearanceModal(target = "game") {
   modalState.isOpen = true;
   modalState.target = target;
@@ -528,6 +583,11 @@ function closeAppearanceModal() {
   modalState.draft = null;
   const modal = document.getElementById("customModal");
   if (modal) {
+    const mount = modal.querySelector(".three-avatar-mount");
+    if (mount && threeViewers.has(mount)) {
+      cancelAnimationFrame(threeViewers.get(mount).animId);
+      threeViewers.delete(mount);
+    }
     modal.innerHTML = "";
     modal.classList.add("hidden");
   }
@@ -606,13 +666,13 @@ function saveAppearanceModal() {
     renderSetupAvatar();
   } else if (gameState) {
     gameState.avatarCustom = cleanedCustom;
-    pushEvent("Atualizou a aparência do avatar.");
+    pushEvent("Atualizou o avatar 3D.");
     saveGame();
     renderGameUI();
   }
 
   closeAppearanceModal();
-  showToast("Aparência guardada!");
+  showToast("Avatar 3D guardado!");
 }
 
 function renderAppearanceModal() {
@@ -632,14 +692,14 @@ function renderAppearanceModal() {
   const optionLabel = getCurrentDraftOptionLabel();
   const tattooAgeNote =
     modalState.category === "tattoo" && Number(modalState.draft.age) < 18
-      ? `<small class="muted">A tatuagem só aparece no avatar a partir dos 18 anos (idade atual: ${modalState.draft.age}).</small>`
+      ? `<small class="muted">A tatuagem 3D fica visível a partir dos 18 anos (idade atual: ${modalState.draft.age}).</small>`
       : "";
 
   modal.innerHTML = `
-    <div class="appearance-modal-card" role="dialog" aria-modal="true" aria-label="Editar Avatar">
+    <div class="appearance-modal-card" role="dialog" aria-modal="true" aria-label="Editar Avatar 3D">
       <div class="appearance-header">
-        <h2>✨ Editar Avatar</h2>
-        <p>Seleciona a aparência e usa as setas para alterar</p>
+        <h2>✨ Editar Avatar 3D</h2>
+        <p>Seleciona a categoria e usa as setas para alterar</p>
       </div>
 
       <div class="appearance-tabs">
@@ -655,7 +715,7 @@ function renderAppearanceModal() {
       <div class="appearance-stage-row">
         <button type="button" class="side-arrow-btn" id="appPrevBtn" aria-label="Anterior">◀</button>
         <div class="appearance-portrait-box">
-          ${renderAvatarSVGMarkup(draftPerson)}
+          <div class="three-avatar-mount" id="modalThreeMount"></div>
         </div>
         <button type="button" class="side-arrow-btn" id="appNextBtn" aria-label="Seguinte">▶</button>
       </div>
@@ -683,6 +743,11 @@ function renderAppearanceModal() {
       <button type="button" class="secondary-btn full-width" id="cancelAppearanceBtn">Cancelar</button>
     </div>
   `;
+
+  const mountEl = document.getElementById("modalThreeMount");
+  if (mountEl) {
+    mount3DAvatar(mountEl, draftPerson, { size: 184 });
+  }
 
   modal.querySelectorAll("[data-app-cat]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -784,13 +849,11 @@ function renderSetupAvatar() {
   imgEl.removeAttribute("style");
   imgEl.src = getLegacyAvatarSrc(setupState.sex, setupState.presetIndex, 18);
 
-  let svgHolder = imgEl.parentElement.querySelector(".setup-svg-holder");
-  if (!svgHolder) {
-    svgHolder = document.createElement("div");
-    svgHolder.className = "setup-svg-holder";
-    svgHolder.style.width = "100%";
-    svgHolder.style.height = "100%";
-    imgEl.parentElement.appendChild(svgHolder);
+  let mountHolder = imgEl.parentElement.querySelector(".three-avatar-mount");
+  if (!mountHolder) {
+    mountHolder = document.createElement("div");
+    mountHolder.className = "three-avatar-mount";
+    imgEl.parentElement.appendChild(mountHolder);
   }
 
   const previewPerson = {
@@ -800,7 +863,7 @@ function renderSetupAvatar() {
     age: 18,
     avatarCustom: setupState.avatarCustom
   };
-  svgHolder.innerHTML = renderAvatarSVGMarkup(previewPerson);
+  mount3DAvatar(mountHolder, previewPerson, { size: 132 });
 
   const navRow = document.querySelector(".avatar-nav-row");
   if (navRow && !document.getElementById("setupEditAvatarBtn")) {
@@ -931,14 +994,31 @@ function renderHeaderAvatar() {
     : "header-avatar";
   container.style.setProperty("--hair-color", effectiveHair);
 
-  container.innerHTML = `
-    <div class="avatar-hair-bar" title="Cor do cabelo"></div>
-    <div class="avatar-circle-inner">
-      <img class="legacy-avatar-img" src="${legacySrc}" alt="Avatar PNG antigo">
-      ${renderAvatarSVGMarkup(gameState)}
-    </div>
-    <span class="life-stage-badge">${stage.label}</span>
-  `;
+  let innerCircle = container.querySelector(".avatar-circle-inner");
+  let badge = container.querySelector(".life-stage-badge");
+  let hairBar = container.querySelector(".avatar-hair-bar");
+
+  if (!hairBar || !innerCircle || !badge) {
+    container.innerHTML = `
+      <div class="avatar-hair-bar" title="Cor do cabelo"></div>
+      <div class="avatar-circle-inner">
+        <img class="legacy-avatar-img" src="${legacySrc}" alt="Avatar PNG antigo">
+        <div class="three-avatar-mount" id="headerThreeMount"></div>
+      </div>
+      <span class="life-stage-badge">${stage.label}</span>
+    `;
+    innerCircle = container.querySelector(".avatar-circle-inner");
+    badge = container.querySelector(".life-stage-badge");
+  } else {
+    const imgEl = innerCircle.querySelector("img.legacy-avatar-img");
+    if (imgEl) imgEl.src = legacySrc;
+    badge.textContent = stage.label;
+  }
+
+  const mountEl = innerCircle.querySelector(".three-avatar-mount");
+  if (mountEl) {
+    mount3DAvatar(mountEl, gameState, { size: 74 });
+  }
 }
 
 function renderAvatarEditorButton() {
@@ -950,7 +1030,7 @@ function renderAvatarEditorButton() {
 
   container.innerHTML = `
     <p class="muted" style="margin-top:0;">
-      Personaliza olhos, pele, sobrancelhas, barba, cabelo, roupa e tatuagens num editor visual com setas.
+      Personaliza olhos, pele, sobrancelhas, barba, cabelo, roupa e tatuagens num editor 3D com setas.
     </p>
     <button type="button" class="primary-btn full-width" id="openGameEditAvatarBtn">
       ✏️ Editar Avatar
