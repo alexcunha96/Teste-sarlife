@@ -164,10 +164,11 @@ function getLifeStage(age) {
 function getEffectiveHairColor(person) {
   const stage = getLifeStage(person.age);
   const chosen = person.avatarCustom?.hairColor || "#3b2618";
-  return stage.id === "idoso" ? "#d8dee9" : chosen;
+  return !person.previewInEditor && stage.id === "idoso" ? "#d8dee9" : chosen;
 }
 
 function getAgeAdjustedTop(person, hairOpt) {
+  if (person.previewInEditor) return hairOpt.diceTop;
   const stage = getLifeStage(person.age);
   if (stage.id === "bebe") return "shortCurly";
   if (stage.id === "crianca" && hairOpt.diceTop === "longButNotTooLong") return "bob";
@@ -277,7 +278,7 @@ function buildDiceBearUrl(person) {
   const accOpt =
     APPEARANCE_OPTIONS.tattoo.find((o) => o.id === custom.tattoo) || APPEARANCE_OPTIONS.tattoo[0];
 
-  const seed = `${person.name || "starlife"}-${stage.id}-${custom.presetIndex || 1}`;
+  const seed = `${person.name || "starlife"}-${person.previewInEditor ? "editor" : stage.id}-${custom.presetIndex || 1}-${beardOpt.id}-${accOpt.id}`;
   const params = new URLSearchParams();
   params.set("seed", seed);
   params.set("radius", "50");
@@ -289,26 +290,23 @@ function buildDiceBearUrl(person) {
     params.set("eyes", eyeOpt.diceEye);
     params.set("eyebrows", browOpt.diceBrow);
     params.set("top", getAgeAdjustedTop(person, hairOpt));
-    params.set("clothing", stage.id === "bebe" ? "shirtCrewNeck" : clothOpt.diceCloth);
-    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "default");
+    params.set("clothing", !person.previewInEditor && stage.id === "bebe" ? "shirtCrewNeck" : clothOpt.diceCloth);
+    params.set("mouth", !person.previewInEditor && stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "default");
 
-    // A barba escolhida só aparece automaticamente a partir dos 18 anos
-    const hasAdultBeard = Number(person.age) >= 18 && beardOpt.diceBeard;
-    if (hasAdultBeard) {
+    const showBeard = Boolean(beardOpt.diceBeard) && (person.previewInEditor || Number(person.age) >= 18);
+    if (showBeard) {
       params.set("facialHair", beardOpt.diceBeard);
       params.set("facialHairColor", hairHex);
       params.set("facialHairProbability", "100");
     } else {
-      params.set("facialHair", "none");
       params.set("facialHairProbability", "0");
     }
 
-    const canHaveAccessory = Number(person.age) >= 13 && accOpt.diceAcc;
-    if (canHaveAccessory) {
+    const showAccessory = Boolean(accOpt.diceAcc) && (person.previewInEditor || Number(person.age) >= 13);
+    if (showAccessory) {
       params.set("accessories", accOpt.diceAcc);
       params.set("accessoriesProbability", "100");
     } else {
-      params.set("accessories", "none");
       params.set("accessoriesProbability", "0");
     }
   } else {
@@ -359,7 +357,7 @@ function generateCanvasFallbackDataUrl(person) {
   const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
   const stage = getLifeStage(person.age).id;
   const hairColor = getEffectiveHairColor(person);
-  const key = `full2d|${stage}|${custom.skinTone}|${custom.eyeColor}|${custom.browStyle}|${custom.facialHair}|${custom.hairStyle}|${hairColor}|${custom.outfit}|${custom.outfitColor}|${custom.tattoo}`;
+  const key = `full2d|${person.previewInEditor ? "editor" : stage}|${custom.skinTone}|${custom.eyeColor}|${custom.browStyle}|${custom.facialHair}|${custom.hairStyle}|${hairColor}|${custom.outfit}|${custom.outfitColor}|${custom.tattoo}`;
 
   if (generatedLayerCache.has(key)) {
     return generatedLayerCache.get(key);
@@ -371,10 +369,10 @@ function generateCanvasFallbackDataUrl(person) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
-  const scale = stage === "bebe" ? 0.82 : stage === "crianca" ? 0.9 : 1.0;
+  const scale = !person.previewInEditor && stage === "bebe" ? 0.82 : !person.previewInEditor && stage === "crianca" ? 0.9 : 1.0;
 
   ctx.save();
-  ctx.translate(160, stage === "bebe" ? 182 : 174);
+  ctx.translate(160, !person.previewInEditor && stage === "bebe" ? 182 : 174);
   ctx.scale(scale, scale);
 
   const skinDark = shadeHexColor(custom.skinTone, -22);
@@ -409,7 +407,7 @@ function generateCanvasFallbackDataUrl(person) {
   faceGrad.addColorStop(1, skinDark);
   ctx.fillStyle = faceGrad;
   ctx.beginPath();
-  ctx.ellipse(0, -16, stage === "bebe" ? 62 : 57, stage === "bebe" ? 64 : 68, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, -16, !person.previewInEditor && stage === "bebe" ? 62 : 57, !person.previewInEditor && stage === "bebe" ? 64 : 68, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
@@ -436,7 +434,7 @@ function generateCanvasFallbackDataUrl(person) {
     ctx.fill();
   });
 
-  if (Number(person.age) >= 18 && custom.facialHair !== "none") {
+  if (custom.facialHair !== "none" && (person.previewInEditor || Number(person.age) >= 18)) {
     ctx.fillStyle = hairColor;
     ctx.globalAlpha = 0.85;
     if (custom.facialHair === "beard") {
@@ -451,7 +449,7 @@ function generateCanvasFallbackDataUrl(person) {
     ctx.globalAlpha = 1;
   }
 
-  drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
+  drawNaturalHair(ctx, custom.hairStyle, hairColor, person.previewInEditor ? "adulto" : stage);
   ctx.restore();
 
   const url = canvas.toDataURL("image/png");
@@ -519,7 +517,7 @@ function loadSavedGame() {
 function openAppearanceModal(target = "game") {
   modalState.isOpen = true;
   modalState.target = target;
-  modalState.category = "hair";
+  modalState.category = "facialHair";
 
   if (target === "setup") {
     modalState.draft = {
@@ -650,7 +648,8 @@ function renderAppearanceModal() {
     name: modalState.draft.name,
     surname: "",
     sex: modalState.draft.sex,
-    age: modalState.draft.age,
+    age: 18,
+    previewInEditor: true,
     avatarCustom: modalState.draft
   };
 
@@ -809,7 +808,8 @@ function renderSetupAvatar() {
     name: document.getElementById("playerName")?.value.trim() || "Avatar",
     surname: "",
     sex: setupState.sex,
-    age: 18,
+    age: 0,
+    previewInEditor: false,
     avatarCustom: setupState.avatarCustom
   };
 
