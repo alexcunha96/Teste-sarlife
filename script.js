@@ -19,7 +19,7 @@ const NAME_HINTS = {
 const PRESET_CONFIGS = {
   1: {
     diceStyle: "avataaars",
-    mouthStyle: "default",
+    mouthStyle: "twinkle",
     skinTone: "#f2c29b",
     eyeColor: "#2563eb",
     browStyle: "arch",
@@ -32,7 +32,7 @@ const PRESET_CONFIGS = {
   },
   2: {
     diceStyle: "avataaars",
-    mouthStyle: "twinkle",
+    mouthStyle: "default",
     skinTone: "#d89b6c",
     eyeColor: "#15803d",
     browStyle: "straight",
@@ -58,7 +58,7 @@ const PRESET_CONFIGS = {
   },
   4: {
     diceStyle: "avataaars",
-    mouthStyle: "default",
+    mouthStyle: "twinkle",
     skinTone: "#fbe3cf",
     eyeColor: "#0284c7",
     browStyle: "soft",
@@ -178,7 +178,7 @@ function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
   const preset = PRESET_CONFIGS[presetIndex] || PRESET_CONFIGS[1];
   return {
     diceStyle: preset.diceStyle || "avataaars",
-    mouthStyle: preset.mouthStyle || "default",
+    mouthStyle: preset.mouthStyle || "twinkle",
     presetIndex,
     skinTone: preset.skinTone,
     eyeColor: preset.eyeColor,
@@ -290,7 +290,7 @@ function buildDiceBearUrl(person) {
     params.set("eyebrows", browOpt.diceBrow);
     params.set("top", getAgeAdjustedTop(person, hairOpt));
     params.set("clothing", stage.id === "bebe" ? "shirtCrewNeck" : clothOpt.diceCloth);
-    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "default");
+    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "twinkle");
 
     const canHaveBeard = Number(person.age) >= 16 && beardOpt.diceBeard;
     if (canHaveBeard) {
@@ -298,14 +298,16 @@ function buildDiceBearUrl(person) {
       params.set("facialHairColor", hairHex);
       params.set("facialHairProbability", "100");
     } else {
+      params.set("facialHair", "none");
       params.set("facialHairProbability", "0");
     }
 
-    const canHaveAccessory = Number(person.age) >= 6 && accOpt.diceAcc;
+    const canHaveAccessory = Number(person.age) >= 13 && accOpt.diceAcc;
     if (canHaveAccessory) {
       params.set("accessories", accOpt.diceAcc);
       params.set("accessoriesProbability", "100");
     } else {
+      params.set("accessories", "none");
       params.set("accessoriesProbability", "0");
     }
   } else {
@@ -521,7 +523,7 @@ function openAppearanceModal(target = "game") {
   if (target === "setup") {
     modalState.draft = {
       ...setupState.avatarCustom,
-      age: 18,
+      age: 0,
       sex: setupState.sex,
       name: document.getElementById("playerName")?.value.trim() || "Personagem"
     };
@@ -535,7 +537,7 @@ function openAppearanceModal(target = "game") {
   } else {
     modalState.draft = {
       ...setupState.avatarCustom,
-      age: 18,
+      age: 0,
       sex: setupState.sex,
       name: "Personagem"
     };
@@ -610,7 +612,7 @@ function saveAppearanceModal() {
 
   const cleanedCustom = {
     diceStyle: modalState.draft.diceStyle || "avataaars",
-    mouthStyle: modalState.draft.mouthStyle || "default",
+    mouthStyle: modalState.draft.mouthStyle || "twinkle",
     presetIndex: modalState.draft.presetIndex,
     skinTone: modalState.draft.skinTone,
     eyeColor: modalState.draft.eyeColor,
@@ -806,7 +808,7 @@ function renderSetupAvatar() {
     name: document.getElementById("playerName")?.value.trim() || "Avatar",
     surname: "",
     sex: setupState.sex,
-    age: 18,
+    age: 0,
     avatarCustom: setupState.avatarCustom
   };
 
