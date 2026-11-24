@@ -206,6 +206,17 @@ function sanitizeSlug(val) {
     .toLowerCase();
 }
 
+function shadeHexColor(hex, percent) {
+  const clean = String(hex || "#888888").replace("#", "");
+  if (clean.length !== 6) return hex || "#888888";
+  const num = parseInt(clean, 16);
+  const amt = Math.round(2.55 * percent);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amt));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+  const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 function getLayerAssetUrls(person) {
   const stage = getLifeStage(person.age).id;
   const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
@@ -271,8 +282,76 @@ function getLayerAssetUrls(person) {
   ].filter((item) => Boolean(item.src));
 }
 
+function drawHairStrands(ctx, style, hairColor, stage) {
+  const darkStrand = shadeHexColor(hairColor, -28);
+  const lightStrand = shadeHexColor(hairColor, 26);
+
+  ctx.save();
+  ctx.lineCap = "round";
+
+  if (stage === "bebe") {
+    ctx.strokeStyle = darkStrand;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(-4, -84);
+    ctx.quadraticCurveTo(-12, -98, -2, -104);
+    ctx.moveTo(4, -84);
+    ctx.quadraticCurveTo(10, -98, 3, -105);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  const strandCount = style === "buzz" ? 14 : style === "long" ? 24 : 18;
+  for (let i = 0; i < strandCount; i++) {
+    const t = strandCount === 1 ? 0.5 : i / (strandCount - 1);
+    const xStart = -52 + t * 104;
+    const yStart = style === "buzz" ? -68 : -78 + Math.abs(t - 0.5) * 16;
+    const len = style === "long" ? 56 : style === "medium" ? 36 : style === "buzz" ? 10 : 24;
+
+    ctx.strokeStyle = i % 3 === 0 ? lightStrand : darkStrand;
+    ctx.lineWidth = style === "buzz" ? 1.8 : 2.2;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.quadraticCurveTo(
+      xStart + (t - 0.5) * 18,
+      yStart + len * 0.55,
+      xStart + (t - 0.5) * 26,
+      yStart + len
+    );
+    ctx.stroke();
+  }
+
+  if (style === "long") {
+    for (let s = -4; s <= 4; s++) {
+      const sideX = s < 0 ? -56 + (s + 4) * 4 : 44 + (s - 1) * 4;
+      ctx.strokeStyle = Math.abs(s) % 2 === 0 ? darkStrand : lightStrand;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(sideX, -24);
+      ctx.quadraticCurveTo(sideX - 4, 24, sideX + 2, 68);
+      ctx.stroke();
+    }
+  } else if (style === "ponytail") {
+    for (let p = -3; p <= 3; p++) {
+      ctx.strokeStyle = p % 2 === 0 ? darkStrand : lightStrand;
+      ctx.lineWidth = 2.1;
+      ctx.beginPath();
+      ctx.moveTo(36, -64 + p * 4);
+      ctx.quadraticCurveTo(68, -68 + p * 7, 84, -42 + p * 9);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
 function generateFallbackLayerDataUrl(layerSpec) {
-  const key = `${layerSpec.layer}|${layerSpec.color}|${layerSpec.person.avatarCustom.hairStyle}|${layerSpec.person.avatarCustom.browStyle}|${layerSpec.person.avatarCustom.facialHair}|${layerSpec.person.avatarCustom.outfit}|${layerSpec.person.avatarCustom.tattoo}|${getLifeStage(layerSpec.person.age).id}`;
+  const custom = layerSpec.person.avatarCustom;
+  const stage = getLifeStage(layerSpec.person.age).id;
+  const hairColor = getEffectiveHairColor(layerSpec.person);
+  const key = `${layerSpec.layer}|${stage}|${custom.skinTone}|${custom.eyeColor}|${custom.browStyle}|${custom.facialHair}|${custom.hairStyle}|${hairColor}|${custom.outfit}|${custom.outfitColor}|${custom.tattoo}`;
+
   if (generatedLayerCache.has(key)) {
     return generatedLayerCache.get(key);
   }
@@ -283,177 +362,335 @@ function generateFallbackLayerDataUrl(layerSpec) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
-  const stage = getLifeStage(layerSpec.person.age).id;
-  const custom = layerSpec.person.avatarCustom;
-  const scale = stage === "bebe" ? 0.84 : stage === "crianca" ? 0.92 : 1.0;
+  const scale = stage === "bebe" ? 0.85 : stage === "crianca" ? 0.92 : 1.0;
 
   ctx.save();
-  ctx.translate(160, 170);
+  ctx.translate(160, 174);
   ctx.scale(scale, scale);
 
   if (layerSpec.layer === "base") {
-    ctx.fillStyle = custom.skinTone;
+    const skinDark = shadeHexColor(custom.skinTone, -22);
+    const skinLight = shadeHexColor(custom.skinTone, 14);
+
+    // Pescoço com sombra sob o queixo
+    const neckGrad = ctx.createLinearGradient(0, 28, 0, 76);
+    neckGrad.addColorStop(0, skinDark);
+    neckGrad.addColorStop(0.35, custom.skinTone);
+    neckGrad.addColorStop(1, skinDark);
+    ctx.fillStyle = neckGrad;
     ctx.beginPath();
-    ctx.roundRect(-24, 34, 48, 42, 12);
+    ctx.roundRect(-22, 28, 44, 48, 12);
     ctx.fill();
 
+    // Orelhas encaixadas às laterais da cabeça
+    [-58, 58].forEach((ex, idx) => {
+      const dir = idx === 0 ? -1 : 1;
+      ctx.fillStyle = skinDark;
+      ctx.beginPath();
+      ctx.ellipse(ex, -16, 11, 17, dir * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(ex + dir * 1, -16, 6, 0.5, Math.PI * 1.65);
+      ctx.stroke();
+    });
+
+    // Rosto com gradiente de volume
+    const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -18, 76);
+    faceGrad.addColorStop(0, skinLight);
+    faceGrad.addColorStop(0.65, custom.skinTone);
+    faceGrad.addColorStop(1, skinDark);
+    ctx.fillStyle = faceGrad;
     ctx.beginPath();
-    ctx.ellipse(0, -18, 62, 74, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -18, 58, 70, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // Maçãs do rosto e contornos suaves
+    ctx.fillStyle = "rgba(180, 70, 70, 0.12)";
     ctx.beginPath();
-    ctx.ellipse(-63, -14, 11, 18, -0.1, 0, Math.PI * 2);
-    ctx.ellipse(63, -14, 11, 18, 0.1, 0, Math.PI * 2);
+    ctx.ellipse(-32, -8, 12, 7, 0, 0, Math.PI * 2);
+    ctx.ellipse(32, -8, 12, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(15, 23, 42, 0.35)";
-    ctx.lineWidth = 2.5;
+    // Nariz com sombra lateral e luz na ponta
+    ctx.strokeStyle = shadeHexColor(custom.skinTone, -30);
+    ctx.lineWidth = 2.4;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(0, -24);
-    ctx.lineTo(-5, 2);
-    ctx.lineTo(6, 4);
+    ctx.moveTo(2, -24);
+    ctx.lineTo(-4, 2);
+    ctx.quadraticCurveTo(0, 8, 8, 5);
     ctx.stroke();
 
-    ctx.strokeStyle = "#9f4a3e";
-    ctx.lineWidth = 3.5;
+    ctx.fillStyle = skinLight;
     ctx.beginPath();
-    ctx.arc(0, 22, 16, 0.2, Math.PI - 0.2);
+    ctx.arc(2, 2, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Boca com lábio superior e inferior
+    ctx.strokeStyle = shadeHexColor(custom.skinTone, -42);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-15, 24);
+    ctx.quadraticCurveTo(0, 29, 15, 24);
     ctx.stroke();
-  } else if (layerSpec.layer === "outfit") {
-    ctx.fillStyle = custom.outfitColor;
+
+    ctx.fillStyle = shadeHexColor(custom.skinTone, -28);
     ctx.beginPath();
-    ctx.moveTo(-105, 145);
-    ctx.quadraticCurveTo(-85, 58, -22, 52);
-    ctx.lineTo(22, 52);
-    ctx.quadraticCurveTo(85, 58, 105, 145);
+    ctx.ellipse(0, 29, 10, 4.5, 0, 0, Math.PI);
+    ctx.fill();
+
+    // Linhas de expressão em idosos
+    if (stage === "idoso") {
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.28)";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(-36, -24);
+      ctx.lineTo(-42, -20);
+      ctx.moveTo(-36, -18);
+      ctx.lineTo(-41, -15);
+      ctx.moveTo(36, -24);
+      ctx.lineTo(42, -20);
+      ctx.moveTo(36, -18);
+      ctx.lineTo(41, -15);
+      ctx.stroke();
+    }
+  } else if (layerSpec.layer === "outfit") {
+    const clothDark = shadeHexColor(custom.outfitColor, -26);
+    const clothLight = shadeHexColor(custom.outfitColor, 18);
+
+    const torsoGrad = ctx.createLinearGradient(-95, 52, 95, 145);
+    torsoGrad.addColorStop(0, clothLight);
+    torsoGrad.addColorStop(0.5, custom.outfitColor);
+    torsoGrad.addColorStop(1, clothDark);
+
+    // Tronco e mangas bem encaixados abaixo do pescoço
+    ctx.fillStyle = torsoGrad;
+    ctx.beginPath();
+    ctx.moveTo(-98, 145);
+    ctx.quadraticCurveTo(-84, 62, -26, 54);
+    ctx.quadraticCurveTo(0, 68, 26, 54);
+    ctx.quadraticCurveTo(84, 62, 98, 145);
     ctx.closePath();
     ctx.fill();
 
+    // Sombra de dobra da gola
+    ctx.strokeStyle = clothDark;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(0, 52, 26, 0.15, Math.PI - 0.15);
+    ctx.stroke();
+
     if (custom.outfit === "smart") {
-      ctx.fillStyle = "#f8fafc";
+      ctx.fillStyle = "#f1f5f9";
       ctx.beginPath();
-      ctx.moveTo(-18, 52);
-      ctx.lineTo(0, 82);
-      ctx.lineTo(18, 52);
+      ctx.moveTo(-22, 54);
+      ctx.lineTo(-6, 78);
+      ctx.lineTo(0, 62);
+      ctx.lineTo(6, 78);
+      ctx.lineTo(22, 54);
       ctx.closePath();
       ctx.fill();
     } else if (custom.outfit === "hoodie") {
-      ctx.strokeStyle = "rgba(255,255,255,0.45)";
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
-      ctx.moveTo(-10, 62);
-      ctx.lineTo(-10, 96);
-      ctx.moveTo(10, 62);
-      ctx.lineTo(10, 96);
+      ctx.moveTo(-9, 64);
+      ctx.lineTo(-9, 98);
+      ctx.moveTo(9, 64);
+      ctx.lineTo(9, 98);
+      ctx.stroke();
+    } else if (custom.outfit === "sport") {
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-72, 74);
+      ctx.lineTo(-88, 145);
+      ctx.moveTo(72, 74);
+      ctx.lineTo(88, 145);
       ctx.stroke();
     }
   } else if (layerSpec.layer === "tattoo") {
-    ctx.fillStyle = "#0f172a";
+    // Tatuagem encaixada no ombro/braço visível
+    ctx.save();
     ctx.strokeStyle = "#0f172a";
+    ctx.fillStyle = "#0f172a";
+    ctx.lineWidth = 2.6;
+
     if (custom.tattoo === "star") {
       ctx.beginPath();
-      ctx.arc(68, 92, 10, 0, Math.PI * 2);
+      ctx.arc(64, 96, 8, 0, Math.PI * 2);
       ctx.fill();
     } else if (custom.tattoo === "sleeve") {
-      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(54, 78);
-      ctx.lineTo(84, 98);
-      ctx.moveTo(58, 102);
-      ctx.lineTo(82, 80);
+      ctx.moveTo(52, 82);
+      ctx.lineTo(78, 102);
+      ctx.moveTo(54, 104);
+      ctx.lineTo(80, 84);
       ctx.stroke();
     } else if (custom.tattoo === "tribal") {
-      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(70, 94, 11, 0.4, Math.PI * 1.6);
+      ctx.arc(66, 98, 9, 0.3, Math.PI * 1.65);
       ctx.stroke();
     }
+    ctx.restore();
   } else if (layerSpec.layer === "eyes") {
-    [-23, 23].forEach((x) => {
-      ctx.fillStyle = "#ffffff";
+    [-22, 22].forEach((x) => {
+      // Sombra superior da pálpebra
+      ctx.fillStyle = "rgba(15, 23, 42, 0.16)";
       ctx.beginPath();
-      ctx.ellipse(x, -26, 13, 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, -26, 13.5, 8.5, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = custom.eyeColor;
+      // Esclera
+      ctx.fillStyle = "#f8fafc";
       ctx.beginPath();
-      ctx.arc(x, -26, 6.2, 0, Math.PI * 2);
+      ctx.ellipse(x, -25, 12, 7.2, 0, 0, Math.PI * 2);
       ctx.fill();
 
+      // Íris com profundidade
+      const irisGrad = ctx.createRadialGradient(x, -25, 1, x, -25, 6.2);
+      irisGrad.addColorStop(0, shadeHexColor(custom.eyeColor, 25));
+      irisGrad.addColorStop(0.75, custom.eyeColor);
+      irisGrad.addColorStop(1, shadeHexColor(custom.eyeColor, -35));
+      ctx.fillStyle = irisGrad;
+      ctx.beginPath();
+      ctx.arc(x, -25, 6.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pupila
       ctx.fillStyle = "#090d16";
       ctx.beginPath();
-      ctx.arc(x, -26, 2.8, 0, Math.PI * 2);
+      ctx.arc(x, -25, 2.7, 0, Math.PI * 2);
       ctx.fill();
 
+      // Brilho do olhar
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.arc(x - 2, -28.5, 1.8, 0, Math.PI * 2);
+      ctx.arc(x - 2.2, -27.5, 1.8, 0, Math.PI * 2);
       ctx.fill();
+
+      // Contorno da pálpebra
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(x, -25, 12, 7.2, 0, Math.PI * 1.05, Math.PI * 1.95);
+      ctx.stroke();
     });
   } else if (layerSpec.layer === "brows") {
-    ctx.strokeStyle = getEffectiveHairColor(layerSpec.person);
-    ctx.lineWidth = custom.browStyle === "thick" ? 6 : 4;
+    ctx.strokeStyle = hairColor;
     ctx.lineCap = "round";
+    const thick = custom.browStyle === "thick" ? 5.2 : custom.browStyle === "soft" ? 3 : 3.8;
+    ctx.lineWidth = thick;
 
-    ctx.beginPath();
-    ctx.moveTo(-36, -42);
-    ctx.quadraticCurveTo(-23, custom.browStyle === "arch" ? -51 : -43, -10, -42);
-    ctx.stroke();
+    [-1, 1].forEach((dir) => {
+      const x1 = dir * 10;
+      const x2 = dir * 35;
+      const yLift = custom.browStyle === "arch" ? -48 : -40;
 
-    ctx.beginPath();
-    ctx.moveTo(10, -42);
-    ctx.quadraticCurveTo(23, custom.browStyle === "arch" ? -51 : -43, 36, -42);
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, -39);
+      ctx.quadraticCurveTo(dir * 22, yLift, x2, -38);
+      ctx.stroke();
+
+      // Pequenos traços de pelo na sobrancelha
+      ctx.lineWidth = 1.4;
+      for (let h = 0; h < 4; h++) {
+        const hx = x1 + (x2 - x1) * (h / 3);
+        ctx.beginPath();
+        ctx.moveTo(hx, -39);
+        ctx.lineTo(hx + dir * 2, -44);
+        ctx.stroke();
+      }
+      ctx.lineWidth = thick;
+    });
   } else if (layerSpec.layer === "facialHair") {
-    ctx.fillStyle = getEffectiveHairColor(layerSpec.person);
+    ctx.save();
     if (custom.facialHair === "beard") {
+      ctx.fillStyle = hairColor;
+      ctx.globalAlpha = 0.88;
+      ctx.beginPath();
+      ctx.arc(0, 4, 53, 0.2, Math.PI - 0.2);
+      ctx.fill();
+
+      ctx.strokeStyle = shadeHexColor(hairColor, -25);
+      ctx.lineWidth = 1.6;
+      ctx.globalAlpha = 0.65;
+      for (let b = -38; b <= 38; b += 7) {
+        ctx.beginPath();
+        ctx.moveTo(b, 8);
+        ctx.lineTo(b * 0.85, 38);
+        ctx.stroke();
+      }
+    } else if (custom.facialHair === "goatee") {
+      ctx.fillStyle = hairColor;
       ctx.globalAlpha = 0.85;
       ctx.beginPath();
-      ctx.arc(0, 6, 56, 0.15, Math.PI - 0.15);
+      ctx.ellipse(0, 34, 13, 10, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.globalAlpha = 1;
-    } else if (custom.facialHair === "goatee") {
+
       ctx.beginPath();
-      ctx.ellipse(0, 34, 14, 11, 0, 0, Math.PI * 2);
+      ctx.roundRect(-14, 16, 28, 5, 3);
       ctx.fill();
     } else if (custom.facialHair === "stubble") {
-      ctx.globalAlpha = 0.26;
+      ctx.fillStyle = hairColor;
+      ctx.globalAlpha = 0.24;
       ctx.beginPath();
-      ctx.arc(0, 8, 53, 0.2, Math.PI - 0.2);
+      ctx.arc(0, 6, 51, 0.25, Math.PI - 0.25);
       ctx.fill();
-      ctx.globalAlpha = 1;
     }
+    ctx.restore();
   } else if (layerSpec.layer === "hair") {
-    ctx.fillStyle = getEffectiveHairColor(layerSpec.person);
+    const hairGrad = ctx.createLinearGradient(-64, -92, 64, 10);
+    hairGrad.addColorStop(0, shadeHexColor(hairColor, 18));
+    hairGrad.addColorStop(0.55, hairColor);
+    hairGrad.addColorStop(1, shadeHexColor(hairColor, -26));
+    ctx.fillStyle = hairGrad;
+
     if (stage === "bebe") {
+      drawHairStrands(ctx, "buzz", hairColor, "bebe");
+      ctx.restore();
+      const url = canvas.toDataURL("image/png");
+      generatedLayerCache.set(key, url);
+      return url;
+    }
+
+    if (custom.hairStyle === "long") {
       ctx.beginPath();
-      ctx.arc(0, -88, 10, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (custom.hairStyle === "long") {
-      ctx.beginPath();
-      ctx.roundRect(-68, -92, 136, 152, 42);
+      ctx.roundRect(-63, -90, 126, 152, 44);
       ctx.fill();
     } else if (custom.hairStyle === "ponytail") {
       ctx.beginPath();
-      ctx.arc(0, -34, 65, Math.PI * 0.95, Math.PI * 2.05);
+      ctx.ellipse(0, -48, 61, 44, 0, Math.PI, Math.PI * 2);
       ctx.fill();
+
       ctx.beginPath();
-      ctx.ellipse(52, -56, 26, 12, -0.5, 0, Math.PI * 2);
+      ctx.ellipse(58, -50, 24, 13, -0.45, 0, Math.PI * 2);
       ctx.fill();
     } else if (custom.hairStyle === "buzz") {
       ctx.beginPath();
-      ctx.arc(0, -30, 63, Math.PI, Math.PI * 2);
+      ctx.ellipse(0, -46, 59, 36, 0, Math.PI, Math.PI * 2);
       ctx.fill();
     } else if (custom.hairStyle === "medium") {
       ctx.beginPath();
-      ctx.arc(0, -34, 67, Math.PI * 0.92, Math.PI * 2.08);
+      ctx.ellipse(0, -48, 63, 44, 0, Math.PI, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.beginPath();
-      ctx.arc(0, -32, 65, Math.PI * 0.96, Math.PI * 2.04);
+      ctx.ellipse(0, -48, 61, 40, 0, Math.PI, Math.PI * 2);
       ctx.fill();
     }
+
+    // Sombra de contacto do cabelo na testa
+    ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+    ctx.beginPath();
+    ctx.ellipse(0, -56, 54, 10, 0, 0, Math.PI);
+    ctx.fill();
+
+    // Fios de cabelo por cima
+    drawHairStrands(ctx, custom.hairStyle, hairColor, stage);
   }
 
   ctx.restore();
