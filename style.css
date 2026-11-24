@@ -64,6 +64,12 @@ body {
   max-width: 520px;
 }
 
+.setup-avatar-box {
+  margin-top: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
 .panel {
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
@@ -149,18 +155,13 @@ button:active {
 /* Avatar no Setup */
 .avatar-stage-circle {
   position: relative;
-  width: 132px !important;
-  height: 132px !important;
-  max-width: 132px !important;
-  max-height: 132px !important;
+  width: 136px;
+  height: 136px;
   margin: 12px auto;
   border-radius: 50%;
-  overflow: hidden !important;
+  overflow: hidden;
   border: 3px solid var(--accent-color);
-  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #26395e 0%, #0f172a 85%);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
 }
 
@@ -195,10 +196,8 @@ button:active {
 
 .header-avatar {
   position: relative;
-  width: 74px !important;
-  height: 74px !important;
-  max-width: 74px !important;
-  max-height: 74px !important;
+  width: 74px;
+  height: 74px;
   flex-shrink: 0;
 }
 
@@ -207,12 +206,10 @@ button:active {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  overflow: hidden !important;
+  overflow: hidden;
   border: 2.5px solid var(--accent-color);
-  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: radial-gradient(circle at 30% 20%, #26395e 0%, #0f172a 85%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .avatar-hair-bar {
@@ -224,7 +221,7 @@ button:active {
   height: 6px;
   border-radius: 999px;
   background: var(--hair-color);
-  z-index: 6;
+  z-index: 12;
   pointer-events: none;
 }
 
@@ -241,51 +238,24 @@ button:active {
   padding: 1px 7px;
   border-radius: 999px;
   white-space: nowrap;
-  z-index: 7;
+  z-index: 14;
 }
 
-/* Desativa PNGs antigos por padrão */
-#setupAvatarImg,
-.avatar-stage-circle img,
-.header-avatar img,
-img.legacy-avatar-img {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  max-width: 0 !important;
-  max-height: 0 !important;
-  visibility: hidden !important;
-}
-
-.show-legacy-mode img.legacy-avatar-img,
-.show-legacy-mode .avatar-stage-circle img,
-.show-legacy-mode .header-avatar img {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  visibility: visible !important;
-  object-fit: cover;
+/* Camadas de Retrato / Imagem */
+.avatar-stack {
   position: relative;
-  z-index: 4;
-}
-
-.show-legacy-mode .three-avatar-mount {
-  display: none !important;
-}
-
-.three-avatar-mount {
   width: 100%;
   height: 100%;
-  position: relative;
-  z-index: 3;
 }
 
-.three-avatar-mount canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
+.avatar-layer-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
 }
 
 .player-info-main h2 {
@@ -349,7 +319,8 @@ img.legacy-avatar-img {
 }
 
 .events-list,
-.people-list {
+.people-list,
+.button-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -409,12 +380,12 @@ img.legacy-avatar-img {
   border-color: rgba(59, 130, 246, 0.5);
 }
 
-/* Modal Editar Avatar */
+/* Modal Editar Avatar (Estilo BitLife) */
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(5, 10, 22, 0.84);
+  background: rgba(5, 10, 22, 0.86);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -500,13 +471,13 @@ img.legacy-avatar-img {
 
 .appearance-portrait-box {
   position: relative;
-  width: 184px;
-  height: 184px;
+  width: 190px;
+  height: 190px;
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.25);
-  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
+  background: radial-gradient(circle at 30% 20%, #26395e 0%, #0f172a 85%);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
