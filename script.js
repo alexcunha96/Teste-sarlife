@@ -268,7 +268,6 @@ function renderAvatarSVGMarkup(person) {
   `;
 }
 
-/* --- Ecrã Inicial (#setupScreen) --- */
 function populateCountriesAndCities() {
   const countrySelect = document.getElementById("playerCountrySelect");
   if (!countrySelect) return;
@@ -332,14 +331,9 @@ function renderSetupAvatar() {
   if (indexEl) {
     indexEl.textContent = `#${setupState.presetIndex}`;
   }
-  if (!imgEl) return;
+  if (!imgEl || !imgEl.parentElement) return;
 
-  const previewPerson = createInitialGameState({
-    sex: setupState.sex,
-    presetIndex: setupState.presetIndex,
-    age: 18
-  });
-
+  imgEl.removeAttribute("style");
   imgEl.src = getLegacyAvatarSrc(setupState.sex, setupState.presetIndex, 18);
 
   let svgHolder = imgEl.parentElement.querySelector(".setup-svg-holder");
@@ -350,6 +344,12 @@ function renderSetupAvatar() {
     svgHolder.style.height = "100%";
     imgEl.parentElement.appendChild(svgHolder);
   }
+
+  const previewPerson = createInitialGameState({
+    sex: setupState.sex,
+    presetIndex: setupState.presetIndex,
+    age: 18
+  });
   svgHolder.innerHTML = renderAvatarSVGMarkup(previewPerson);
 }
 
@@ -446,10 +446,11 @@ function startNewGame() {
   openGameScreen();
 }
 
-/* --- Ecrã Principal do Jogo (#gameScreen) --- */
 function openGameScreen() {
-  document.getElementById("setupScreen")?.classList.add("hidden");
-  document.getElementById("gameScreen")?.classList.remove("hidden");
+  const setupEl = document.getElementById("setupScreen");
+  const gameEl = document.getElementById("gameScreen");
+  setupEl?.classList.add("hidden");
+  gameEl?.classList.remove("hidden");
   renderAvatarEditor();
   renderGameUI();
 }
@@ -752,6 +753,10 @@ function bindMainButtons() {
 }
 
 function initApp() {
+  document.getElementById("setupScreen")?.classList.remove("hidden");
+  document.getElementById("gameScreen")?.classList.add("hidden");
+  document.getElementById("deathScreen")?.classList.add("hidden");
+
   populateCountriesAndCities();
   bindTabsAndNavigation();
   bindMainButtons();
