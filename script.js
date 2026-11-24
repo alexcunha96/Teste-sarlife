@@ -19,6 +19,7 @@ const NAME_HINTS = {
 const PRESET_CONFIGS = {
   1: {
     diceStyle: "avataaars",
+    mouthStyle: "default",
     skinTone: "#f2c29b",
     eyeColor: "#2563eb",
     browStyle: "arch",
@@ -31,6 +32,7 @@ const PRESET_CONFIGS = {
   },
   2: {
     diceStyle: "avataaars",
+    mouthStyle: "twinkle",
     skinTone: "#d89b6c",
     eyeColor: "#15803d",
     browStyle: "straight",
@@ -43,6 +45,7 @@ const PRESET_CONFIGS = {
   },
   3: {
     diceStyle: "avataaars",
+    mouthStyle: "serious",
     skinTone: "#8d5524",
     eyeColor: "#5c3a21",
     browStyle: "thick",
@@ -55,6 +58,7 @@ const PRESET_CONFIGS = {
   },
   4: {
     diceStyle: "avataaars",
+    mouthStyle: "default",
     skinTone: "#fbe3cf",
     eyeColor: "#0284c7",
     browStyle: "soft",
@@ -167,6 +171,7 @@ function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
   const preset = PRESET_CONFIGS[presetIndex] || PRESET_CONFIGS[1];
   return {
     diceStyle: preset.diceStyle || "avataaars",
+    mouthStyle: preset.mouthStyle || "default",
     presetIndex,
     skinTone: preset.skinTone,
     eyeColor: preset.eyeColor,
@@ -277,7 +282,7 @@ function buildDiceBearUrl(person) {
     params.set("eyebrows", browOpt.diceBrow);
     params.set("top", hairOpt.diceTop);
     params.set("clothing", clothOpt.diceCloth);
-    params.set("mouth", "smile");
+    params.set("mouth", custom.mouthStyle || "default");
 
     if (beardOpt.diceBeard) {
       params.set("facialHair", beardOpt.diceBeard);
@@ -570,6 +575,7 @@ function saveAppearanceModal() {
 
   const cleanedCustom = {
     diceStyle: modalState.draft.diceStyle || "avataaars",
+    mouthStyle: modalState.draft.mouthStyle || "default",
     presetIndex: modalState.draft.presetIndex,
     skinTone: modalState.draft.skinTone,
     eyeColor: modalState.draft.eyeColor,
