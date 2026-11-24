@@ -1,4 +1,5 @@
 const SAVE_KEY = "starlife_teste_save_v2";
+const DICEBEAR_API_BASE = "https://api.dicebear.com/9.x";
 
 const COUNTRIES_DATA = {
   "Portugal": ["Lisboa", "Porto", "Coimbra", "Braga", "Faro"],
@@ -17,6 +18,7 @@ const NAME_HINTS = {
 
 const PRESET_CONFIGS = {
   1: {
+    diceStyle: "avataaars",
     skinTone: "#f2c29b",
     eyeColor: "#2563eb",
     browStyle: "arch",
@@ -28,6 +30,7 @@ const PRESET_CONFIGS = {
     tattoo: "none"
   },
   2: {
+    diceStyle: "avataaars",
     skinTone: "#d89b6c",
     eyeColor: "#15803d",
     browStyle: "straight",
@@ -39,6 +42,7 @@ const PRESET_CONFIGS = {
     tattoo: "star"
   },
   3: {
+    diceStyle: "avataaars",
     skinTone: "#8d5524",
     eyeColor: "#5c3a21",
     browStyle: "thick",
@@ -50,6 +54,7 @@ const PRESET_CONFIGS = {
     tattoo: "sleeve"
   },
   4: {
+    diceStyle: "avataaars",
     skinTone: "#fbe3cf",
     eyeColor: "#0284c7",
     browStyle: "soft",
@@ -64,51 +69,57 @@ const PRESET_CONFIGS = {
 
 const APPEARANCE_OPTIONS = {
   eyes: [
-    { id: "#2563eb", label: "Olhos Azuis" },
-    { id: "#15803d", label: "Olhos Verdes" },
-    { id: "#5c3a21", label: "Olhos Castanhos" },
-    { id: "#475569", label: "Olhos Cinzentos" },
-    { id: "#92400e", label: "Olhos Âmbar / Mel" }
+    { id: "#2563eb", label: "Olhos Azuis", diceEye: "happy" },
+    { id: "#15803d", label: "Olhos Verdes", diceEye: "default" },
+    { id: "#5c3a21", label: "Olhos Castanhos", diceEye: "surprised" },
+    { id: "#475569", label: "Olhos Cinzentos", diceEye: "wink" },
+    { id: "#92400e", label: "Olhos Âmbar / Mel", diceEye: "hearts" }
   ],
   skin: [
-    { id: "#fbe3cf", label: "Pele Clara" },
-    { id: "#f2c29b", label: "Pele Média Clara" },
-    { id: "#d89b6c", label: "Pele Bronzeada" },
-    { id: "#b06d3b", label: "Pele Morena" },
-    { id: "#7c4722", label: "Pele Escura" }
+    { id: "#fbe3cf", label: "Pele Clara", diceSkin: "ffdbb4" },
+    { id: "#f2c29b", label: "Pele Média Clara", diceSkin: "edb98a" },
+    { id: "#d89b6c", label: "Pele Bronzeada", diceSkin: "d08b5b" },
+    { id: "#b06d3b", label: "Pele Morena", diceSkin: "ae5d29" },
+    { id: "#7c4722", label: "Pele Escura", diceSkin: "614335" }
   ],
   brows: [
-    { id: "arch", label: "Sobrancelhas Arqueadas" },
-    { id: "straight", label: "Sobrancelhas Retas" },
-    { id: "thick", label: "Sobrancelhas Densas" },
-    { id: "soft", label: "Sobrancelhas Suaves" }
+    { id: "arch", label: "Sobrancelhas Arqueadas", diceBrow: "raisedExcitedNatural" },
+    { id: "straight", label: "Sobrancelhas Retas", diceBrow: "flatNatural" },
+    { id: "thick", label: "Sobrancelhas Densas", diceBrow: "defaultNatural" },
+    { id: "soft", label: "Sobrancelhas Suaves", diceBrow: "upDownNatural" }
   ],
   facialHair: [
-    { id: "none", label: "Sem Barba" },
-    { id: "stubble", label: "Barba por Fazer" },
-    { id: "goatee", label: "Cavanhaque / Bigode" },
-    { id: "beard", label: "Barba Cheia" }
+    { id: "none", label: "Sem Barba", diceBeard: "" },
+    { id: "stubble", label: "Barba por Fazer", diceBeard: "beardLight" },
+    { id: "goatee", label: "Cavanhaque / Bigode", diceBeard: "beardMajestic" },
+    { id: "beard", label: "Barba Cheia", diceBeard: "beardMedium" }
   ],
   hair: [
-    { id: "short", label: "Cabelo Curto" },
-    { id: "medium", label: "Cabelo Médio" },
-    { id: "long", label: "Cabelo Comprido" },
-    { id: "ponytail", label: "Rabo de Cavalo" },
-    { id: "buzz", label: "Rapado / Curto Alto" }
+    { id: "short", label: "Cabelo Curto", diceTop: "shortFlat" },
+    { id: "medium", label: "Cabelo Médio", diceTop: "sidesBird" },
+    { id: "long", label: "Cabelo Comprido", diceTop: "longButNotTooLong" },
+    { id: "ponytail", label: "Rabo de Cavalo", diceTop: "bun" },
+    { id: "buzz", label: "Rapado / Curto Alto", diceTop: "shaggy" }
   ],
   outfit: [
-    { id: "casual", label: "T-Shirt Casual" },
-    { id: "smart", label: "Camisa Social" },
-    { id: "sport", label: "Fato de Treino" },
-    { id: "hoodie", label: "Sweat com Capuz" }
+    { id: "casual", label: "T-Shirt Casual", diceCloth: "graphicShirt" },
+    { id: "smart", label: "Camisa Social", diceCloth: "blazerAndShirt" },
+    { id: "sport", label: "Fato de Treino", diceCloth: "shirtCrewNeck" },
+    { id: "hoodie", label: "Sweat com Capuz", diceCloth: "hoodie" }
   ],
   tattoo: [
-    { id: "none", label: "Sem Tatuagem" },
-    { id: "star", label: "Estrela no Braço" },
-    { id: "sleeve", label: "Manga no Braço" },
-    { id: "tribal", label: "Símbolo Tribal" }
+    { id: "none", label: "Sem Tatuagem", diceAcc: "" },
+    { id: "star", label: "Estrela no Braço", diceAcc: "round" },
+    { id: "sleeve", label: "Manga no Braço", diceAcc: "prescription02" },
+    { id: "tribal", label: "Símbolo Tribal", diceAcc: "wayfarers" }
   ]
 };
+
+const DICE_STYLES = [
+  { id: "avataaars", label: "Avataaars" },
+  { id: "big-ears", label: "Big Ears" },
+  { id: "big-smile", label: "Big Smile" }
+];
 
 const APPEARANCE_CATEGORIES = [
   { key: "eyes", label: "Olhos" },
@@ -155,6 +166,7 @@ function getEffectiveHairColor(person) {
 function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
   const preset = PRESET_CONFIGS[presetIndex] || PRESET_CONFIGS[1];
   return {
+    diceStyle: preset.diceStyle || "avataaars",
     presetIndex,
     skinTone: preset.skinTone,
     eyeColor: preset.eyeColor,
@@ -215,15 +227,13 @@ let modalState = {
   draft: null
 };
 
-function sanitizeSlug(val) {
-  return String(val || "")
-    .replace(/[^a-zA-Z0-9_-]/g, "")
-    .toLowerCase();
+function cleanHex(hex, fallback = "3b2618") {
+  const cleaned = String(hex || fallback).replace("#", "").trim();
+  return /^[0-9a-fA-F]{6}$/.test(cleaned) ? cleaned.toLowerCase() : fallback;
 }
 
 function shadeHexColor(hex, percent) {
-  const clean = String(hex || "#888888").replace("#", "");
-  if (clean.length !== 6) return hex || "#888888";
+  const clean = cleanHex(hex, "888888");
   const num = parseInt(clean, 16);
   const amt = Math.round(2.55 * percent);
   const r = Math.min(255, Math.max(0, (num >> 16) + amt));
@@ -232,69 +242,64 @@ function shadeHexColor(hex, percent) {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
-function getLayerAssetUrls(person) {
-  const stage = getLifeStage(person.age).id;
+function buildDiceBearUrl(person) {
   const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
-  const hairColor = getEffectiveHairColor(person);
-  const baseFolder = "assets/avatars";
+  const style = custom.diceStyle || "avataaars";
+  const hairHex = cleanHex(getEffectiveHairColor(person), "3b2618");
+  const clothHex = cleanHex(custom.outfitColor, "3b82f6");
 
-  return [
-    {
-      layer: "base",
-      z: 1,
-      src: `${baseFolder}/base_${stage}_${sanitizeSlug(custom.skinTone)}.png`,
-      person,
-      color: custom.skinTone
-    },
-    {
-      layer: "outfit",
-      z: 2,
-      src: `${baseFolder}/outfit_${sanitizeSlug(custom.outfit)}_${sanitizeSlug(custom.outfitColor)}.png`,
-      person,
-      color: custom.outfitColor
-    },
-    {
-      layer: "tattoo",
-      z: 3,
-      src:
-        Number(person.age) >= 18 && custom.tattoo !== "none"
-          ? `${baseFolder}/tattoo_${sanitizeSlug(custom.tattoo)}.png`
-          : "",
-      person,
-      color: "#0f172a"
-    },
-    {
-      layer: "eyes",
-      z: 4,
-      src: `${baseFolder}/eyes_${sanitizeSlug(custom.eyeColor)}.png`,
-      person,
-      color: custom.eyeColor
-    },
-    {
-      layer: "brows",
-      z: 5,
-      src: `${baseFolder}/brows_${sanitizeSlug(custom.browStyle)}_${sanitizeSlug(hairColor)}.png`,
-      person,
-      color: hairColor
-    },
-    {
-      layer: "facialHair",
-      z: 6,
-      src:
-        Number(person.age) >= 14 && custom.facialHair !== "none"
-          ? `${baseFolder}/beard_${sanitizeSlug(custom.facialHair)}_${sanitizeSlug(hairColor)}.png`
-          : "",
-      person,
-      color: hairColor
-    },
-    {
-      layer: "hair",
-      z: 7,
-      src: `${baseFolder}/hair_${sanitizeSlug(custom.hairStyle)}_${sanitizeSlug(hairColor)}.png`,
-      person,
-      color: hairColor
+  const skinOpt =
+    APPEARANCE_OPTIONS.skin.find((o) => o.id === custom.skinTone) || APPEARANCE_OPTIONS.skin[1];
+  const eyeOpt =
+    APPEARANCE_OPTIONS.eyes.find((o) => o.id === custom.eyeColor) || APPEARANCE_OPTIONS.eyes[0];
+  const browOpt =
+    APPEARANCE_OPTIONS.brows.find((o) => o.id === custom.browStyle) || APPEARANCE_OPTIONS.brows[0];
+  const beardOpt =
+    APPEARANCE_OPTIONS.facialHair.find((o) => o.id === custom.facialHair) ||
+    APPEARANCE_OPTIONS.facialHair[0];
+  const hairOpt =
+    APPEARANCE_OPTIONS.hair.find((o) => o.id === custom.hairStyle) || APPEARANCE_OPTIONS.hair[0];
+  const clothOpt =
+    APPEARANCE_OPTIONS.outfit.find((o) => o.id === custom.outfit) || APPEARANCE_OPTIONS.outfit[0];
+  const accOpt =
+    APPEARANCE_OPTIONS.tattoo.find((o) => o.id === custom.tattoo) || APPEARANCE_OPTIONS.tattoo[0];
+
+  const seed = encodeURIComponent(
+    `${person.name || "star"}_${person.sex || "M"}_${custom.hairStyle}_${custom.facialHair}_${custom.outfit}`
+  );
+  const params = new URLSearchParams();
+  params.set("seed", seed);
+  params.set("radius", "50");
+
+  if (style === "avataaars") {
+    params.set("skinColor", skinOpt.diceSkin);
+    params.set("hairColor", hairHex);
+    params.set("clothingColor", clothHex);
+    params.set("eyes", eyeOpt.diceEye);
+    params.set("eyebrows", browOpt.diceBrow);
+    params.set("top", hairOpt.diceTop);
+    params.set("clothing", clothOpt.diceCloth);
+    params.set("mouth", "smile");
+
+    if (Number(person.age) >= 14 && beardOpt.diceBeard) {
+      params.set("facialHair", beardOpt.diceBeard);
+      params.set("facialHairColor", hairHex);
+      params.set("facialHairProbability", "100");
+    } else {
+      params.set("facialHairProbability", "0");
     }
-  ].filter((item) => Boolean(item.src));
+
+    if (Number(person.age) >= 18 && accOpt.diceAcc) {
+      params.set("accessories", accOpt.diceAcc);
+      params.set("accessoriesProbability", "100");
+    } else {
+      params.set("accessoriesProbability", "0");
+    }
+  } else {
+    params.set("hairColor", hairHex);
+  }
+
+  return `${DICEBEAR_API_BASE}/${style}/svg?${params.toString()}`;
 }
 
 function drawNaturalHair(ctx, style, hairColor, stage) {
@@ -326,7 +331,6 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
     return;
   }
 
-  // Volume principal da cabeça (deixando a testa e o rosto bem equilibrados)
   ctx.fillStyle = grad;
   ctx.strokeStyle = darkHair;
   ctx.lineWidth = 2.2;
@@ -356,7 +360,6 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
     ctx.fill();
     ctx.stroke();
 
-    // Rabo de cavalo lateral fluido
     ctx.beginPath();
     ctx.moveTo(42, -74);
     ctx.bezierCurveTo(78, -82, 92, -46, 76, -14);
@@ -388,7 +391,6 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
     ctx.fill();
     ctx.stroke();
   } else {
-    // Cabelo curto com franja suave diagonal
     ctx.beginPath();
     ctx.moveTo(-59, -38);
     ctx.bezierCurveTo(-62, -86, -20, -94, 4, -91);
@@ -400,7 +402,6 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
     ctx.stroke();
   }
 
-  // Mechas e fios suaves (sem dentes em ziguezague rígidos)
   const strokes = style === "buzz" ? 8 : 13;
   for (let i = 0; i < strokes; i++) {
     const t = strokes === 1 ? 0.5 : i / (strokes - 1);
@@ -418,27 +419,15 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
     ctx.stroke();
   }
 
-  if (style === "long") {
-    ctx.strokeStyle = darkHair;
-    ctx.globalAlpha = 0.45;
-    ctx.lineWidth = 2;
-    [-53, -47, 47, 53].forEach((lx) => {
-      ctx.beginPath();
-      ctx.moveTo(lx, -22);
-      ctx.quadraticCurveTo(lx + (lx < 0 ? -3 : 3), 18, lx, 52);
-      ctx.stroke();
-    });
-  }
-
   ctx.globalAlpha = 1;
   ctx.restore();
 }
 
-function generateFallbackLayerDataUrl(layerSpec) {
-  const custom = layerSpec.person.avatarCustom;
-  const stage = getLifeStage(layerSpec.person.age).id;
-  const hairColor = getEffectiveHairColor(layerSpec.person);
-  const key = `${layerSpec.layer}|${stage}|${custom.skinTone}|${custom.eyeColor}|${custom.browStyle}|${custom.facialHair}|${custom.hairStyle}|${hairColor}|${custom.outfit}|${custom.outfitColor}|${custom.tattoo}`;
+function generateCanvasFallbackDataUrl(person) {
+  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
+  const stage = getLifeStage(person.age).id;
+  const hairColor = getEffectiveHairColor(person);
+  const key = `full2d|${stage}|${custom.skinTone}|${custom.eyeColor}|${custom.browStyle}|${custom.facialHair}|${custom.hairStyle}|${hairColor}|${custom.outfit}|${custom.outfitColor}|${custom.tattoo}`;
 
   if (generatedLayerCache.has(key)) {
     return generatedLayerCache.get(key);
@@ -456,226 +445,95 @@ function generateFallbackLayerDataUrl(layerSpec) {
   ctx.translate(160, 174);
   ctx.scale(scale, scale);
 
-  if (layerSpec.layer === "base") {
-    const skinDark = shadeHexColor(custom.skinTone, -22);
-    const skinLight = shadeHexColor(custom.skinTone, 14);
+  const skinDark = shadeHexColor(custom.skinTone, -22);
+  const skinLight = shadeHexColor(custom.skinTone, 14);
+  const clothDark = shadeHexColor(custom.outfitColor, -26);
+  const clothLight = shadeHexColor(custom.outfitColor, 18);
 
-    // Pescoço
-    const neckGrad = ctx.createLinearGradient(0, 28, 0, 78);
-    neckGrad.addColorStop(0, skinDark);
-    neckGrad.addColorStop(0.35, custom.skinTone);
-    neckGrad.addColorStop(1, skinDark);
-    ctx.fillStyle = neckGrad;
-    drawRoundedBox(ctx, -21, 28, 42, 50, 12);
+  const torsoGrad = ctx.createLinearGradient(-95, 52, 95, 145);
+  torsoGrad.addColorStop(0, clothLight);
+  torsoGrad.addColorStop(0.5, custom.outfitColor);
+  torsoGrad.addColorStop(1, clothDark);
+  ctx.fillStyle = torsoGrad;
+  ctx.beginPath();
+  ctx.moveTo(-98, 145);
+  ctx.quadraticCurveTo(-84, 62, -25, 54);
+  ctx.quadraticCurveTo(0, 68, 25, 54);
+  ctx.quadraticCurveTo(84, 62, 98, 145);
+  ctx.closePath();
+  ctx.fill();
+
+  const neckGrad = ctx.createLinearGradient(0, 28, 0, 78);
+  neckGrad.addColorStop(0, skinDark);
+  neckGrad.addColorStop(0.35, custom.skinTone);
+  neckGrad.addColorStop(1, skinDark);
+  ctx.fillStyle = neckGrad;
+  drawRoundedBox(ctx, -21, 28, 42, 50, 12);
+  ctx.fill();
+
+  [-57, 57].forEach((ex, idx) => {
+    const dir = idx === 0 ? -1 : 1;
+    ctx.fillStyle = skinDark;
+    ctx.beginPath();
+    ctx.ellipse(ex, -14, 10, 16, dir * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -16, 76);
+  faceGrad.addColorStop(0, skinLight);
+  faceGrad.addColorStop(0.65, custom.skinTone);
+  faceGrad.addColorStop(1, skinDark);
+  ctx.fillStyle = faceGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, -16, 57, 68, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(1, -22);
+  ctx.lineTo(-4, 2);
+  ctx.quadraticCurveTo(0, 7, 7, 4);
+  ctx.stroke();
+
+  ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(-14, 22);
+  ctx.quadraticCurveTo(0, 27, 14, 22);
+  ctx.stroke();
+
+  [-22, 22].forEach((x) => {
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.ellipse(x, -23, 12.2, 7.4, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Orelhas
-    [-57, 57].forEach((ex, idx) => {
-      const dir = idx === 0 ? -1 : 1;
-      ctx.fillStyle = skinDark;
-      ctx.beginPath();
-      ctx.ellipse(ex, -14, 10, 16, dir * 0.1, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.arc(ex + dir * 1, -14, 5.5, 0.5, Math.PI * 1.6);
-      ctx.stroke();
-    });
-
-    // Rosto
-    const faceGrad = ctx.createRadialGradient(-18, -42, 10, 0, -16, 76);
-    faceGrad.addColorStop(0, skinLight);
-    faceGrad.addColorStop(0.65, custom.skinTone);
-    faceGrad.addColorStop(1, skinDark);
-    ctx.fillStyle = faceGrad;
+    ctx.fillStyle = custom.eyeColor;
     ctx.beginPath();
-    ctx.ellipse(0, -16, 57, 68, 0, 0, Math.PI * 2);
+    ctx.arc(x, -23, 6.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Rubor suave nas bochechas
-    ctx.fillStyle = "rgba(190, 75, 75, 0.11)";
+    ctx.fillStyle = "#090d16";
     ctx.beginPath();
-    ctx.ellipse(-31, -6, 11, 6.5, 0, 0, Math.PI * 2);
-    ctx.ellipse(31, -6, 11, 6.5, 0, 0, Math.PI * 2);
+    ctx.arc(x, -23, 2.7, 0, Math.PI * 2);
     ctx.fill();
+  });
 
-    // Nariz
-    ctx.strokeStyle = shadeHexColor(custom.skinTone, -32);
-    ctx.lineWidth = 2.2;
-    ctx.lineCap = "round";
+  ctx.strokeStyle = hairColor;
+  ctx.lineWidth = custom.browStyle === "thick" ? 5 : 3.6;
+  [-1, 1].forEach((dir) => {
     ctx.beginPath();
-    ctx.moveTo(1, -22);
-    ctx.lineTo(-4, 2);
-    ctx.quadraticCurveTo(0, 7, 7, 4);
+    ctx.moveTo(dir * 10, -36);
+    ctx.quadraticCurveTo(dir * 22, custom.browStyle === "arch" ? -45 : -37, dir * 35, -35);
     ctx.stroke();
+  });
 
-    ctx.fillStyle = skinLight;
-    ctx.beginPath();
-    ctx.arc(1, 2, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Boca bem visível na zona inferior do rosto
-    ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.moveTo(-14, 22);
-    ctx.quadraticCurveTo(0, 27, 14, 22);
-    ctx.stroke();
-
-    ctx.fillStyle = "#c96a64";
-    ctx.beginPath();
-    ctx.ellipse(0, 25, 9, 3.8, 0, 0, Math.PI);
-    ctx.fill();
-
-    if (stage === "idoso") {
-      ctx.strokeStyle = "rgba(15, 23, 42, 0.25)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(-35, -22);
-      ctx.lineTo(-41, -19);
-      ctx.moveTo(35, -22);
-      ctx.lineTo(41, -19);
-      ctx.stroke();
-    }
-  } else if (layerSpec.layer === "outfit") {
-    const clothDark = shadeHexColor(custom.outfitColor, -26);
-    const clothLight = shadeHexColor(custom.outfitColor, 18);
-
-    const torsoGrad = ctx.createLinearGradient(-95, 52, 95, 145);
-    torsoGrad.addColorStop(0, clothLight);
-    torsoGrad.addColorStop(0.5, custom.outfitColor);
-    torsoGrad.addColorStop(1, clothDark);
-
-    ctx.fillStyle = torsoGrad;
-    ctx.beginPath();
-    ctx.moveTo(-98, 145);
-    ctx.quadraticCurveTo(-84, 62, -25, 54);
-    ctx.quadraticCurveTo(0, 68, 25, 54);
-    ctx.quadraticCurveTo(84, 62, 98, 145);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = clothDark;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(0, 52, 25, 0.15, Math.PI - 0.15);
-    ctx.stroke();
-
-    if (custom.outfit === "smart") {
-      ctx.fillStyle = "#f1f5f9";
-      ctx.beginPath();
-      ctx.moveTo(-21, 54);
-      ctx.lineTo(-6, 78);
-      ctx.lineTo(0, 62);
-      ctx.lineTo(6, 78);
-      ctx.lineTo(21, 54);
-      ctx.closePath();
-      ctx.fill();
-    } else if (custom.outfit === "hoodie") {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(-9, 64);
-      ctx.lineTo(-9, 98);
-      ctx.moveTo(9, 64);
-      ctx.lineTo(9, 98);
-      ctx.stroke();
-    } else if (custom.outfit === "sport") {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-72, 74);
-      ctx.lineTo(-88, 145);
-      ctx.moveTo(72, 74);
-      ctx.lineTo(88, 145);
-      ctx.stroke();
-    }
-  } else if (layerSpec.layer === "tattoo") {
-    ctx.save();
-    ctx.strokeStyle = "#0f172a";
-    ctx.fillStyle = "#0f172a";
-    ctx.lineWidth = 2.5;
-
-    if (custom.tattoo === "star") {
-      ctx.beginPath();
-      ctx.arc(64, 96, 7.5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (custom.tattoo === "sleeve") {
-      ctx.beginPath();
-      ctx.moveTo(52, 82);
-      ctx.lineTo(78, 102);
-      ctx.moveTo(54, 104);
-      ctx.lineTo(80, 84);
-      ctx.stroke();
-    } else if (custom.tattoo === "tribal") {
-      ctx.beginPath();
-      ctx.arc(66, 98, 8.5, 0.3, Math.PI * 1.65);
-      ctx.stroke();
-    }
-    ctx.restore();
-  } else if (layerSpec.layer === "eyes") {
-    [-22, 22].forEach((x) => {
-      ctx.fillStyle = "rgba(15, 23, 42, 0.14)";
-      ctx.beginPath();
-      ctx.ellipse(x, -24, 13.5, 8.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#f8fafc";
-      ctx.beginPath();
-      ctx.ellipse(x, -23, 12.2, 7.4, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      const irisGrad = ctx.createRadialGradient(x, -23, 1, x, -23, 6.4);
-      irisGrad.addColorStop(0, shadeHexColor(custom.eyeColor, 25));
-      irisGrad.addColorStop(0.75, custom.eyeColor);
-      irisGrad.addColorStop(1, shadeHexColor(custom.eyeColor, -35));
-      ctx.fillStyle = irisGrad;
-      ctx.beginPath();
-      ctx.arc(x, -23, 6.4, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#090d16";
-      ctx.beginPath();
-      ctx.arc(x, -23, 2.8, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(x - 2.2, -25.5, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "#1e293b";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.ellipse(x, -23, 12.2, 7.4, 0, Math.PI * 1.05, Math.PI * 1.95);
-      ctx.stroke();
-    });
-  } else if (layerSpec.layer === "brows") {
-    ctx.strokeStyle = hairColor;
-    ctx.lineCap = "round";
-    const thick = custom.browStyle === "thick" ? 5 : custom.browStyle === "soft" ? 3 : 3.8;
-    ctx.lineWidth = thick;
-
-    [-1, 1].forEach((dir) => {
-      const x1 = dir * 10;
-      const x2 = dir * 35;
-      const yLift = custom.browStyle === "arch" ? -45 : -37;
-
-      ctx.beginPath();
-      ctx.moveTo(x1, -36);
-      ctx.quadraticCurveTo(dir * 22, yLift, x2, -35);
-      ctx.stroke();
-    });
-  } else if (layerSpec.layer === "facialHair") {
-    // Barba ajustada para não cobrir a boca
-    ctx.save();
+  if (Number(person.age) >= 14 && custom.facialHair !== "none") {
     ctx.fillStyle = hairColor;
-
+    ctx.globalAlpha = 0.85;
     if (custom.facialHair === "beard") {
-      ctx.globalAlpha = 0.86;
-      // Contorno da mandíbula e queixo abaixo da boca + laterais
       ctx.beginPath();
       ctx.moveTo(-51, -8);
       ctx.quadraticCurveTo(-54, 46, 0, 52);
@@ -685,36 +543,17 @@ function generateFallbackLayerDataUrl(layerSpec) {
       ctx.quadraticCurveTo(-38, 36, -41, -6);
       ctx.closePath();
       ctx.fill();
-
-      // Bigode acima dos lábios (y entre 10 e 16)
       drawRoundedBox(ctx, -18, 10, 36, 6, 3);
       ctx.fill();
     } else if (custom.facialHair === "goatee") {
-      ctx.globalAlpha = 0.85;
-      // Pequeno cavanhaque abaixo do lábio inferior
       ctx.beginPath();
       ctx.ellipse(0, 36, 11, 7.5, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      // Bigode discreto acima da boca
-      drawRoundedBox(ctx, -14, 11, 28, 5, 2.5);
-      ctx.fill();
-    } else if (custom.facialHair === "stubble") {
-      ctx.globalAlpha = 0.24;
-      ctx.beginPath();
-      ctx.moveTo(-48, -6);
-      ctx.quadraticCurveTo(-50, 44, 0, 49);
-      ctx.quadraticCurveTo(50, 44, 48, -6);
-      ctx.lineTo(39, -4);
-      ctx.quadraticCurveTo(36, 34, 0, 39);
-      ctx.quadraticCurveTo(-36, 34, -39, -4);
-      ctx.closePath();
-      ctx.fill();
     }
-    ctx.restore();
-  } else if (layerSpec.layer === "hair") {
-    drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
+    ctx.globalAlpha = 1;
   }
+
+  drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
 
   ctx.restore();
 
@@ -724,15 +563,18 @@ function generateFallbackLayerDataUrl(layerSpec) {
 }
 
 function renderAvatarLayersHTML(person) {
-  const layers = getLayerAssetUrls(person);
+  const diceUrl = buildDiceBearUrl(person);
+  const fallbackUrl = generateCanvasFallbackDataUrl(person);
   return `
     <div class="avatar-stack">
-      ${layers
-        .map((item) => {
-          const fallbackUrl = generateFallbackLayerDataUrl(item);
-          return `<img class="avatar-layer-img" data-layer="${item.layer}" style="z-index:${item.z};" src="${fallbackUrl || item.src}" alt="${item.layer}">`;
-        })
-        .join("")}
+      <img
+        class="avatar-layer-img"
+        style="z-index:2;"
+        src="${diceUrl}"
+        data-fallback="${fallbackUrl}"
+        alt="Avatar"
+        onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback;}"
+      >
     </div>
   `;
 }
@@ -873,6 +715,7 @@ function saveAppearanceModal() {
   if (!modalState.draft) return;
 
   const cleanedCustom = {
+    diceStyle: modalState.draft.diceStyle || "avataaars",
     presetIndex: modalState.draft.presetIndex,
     skinTone: modalState.draft.skinTone,
     eyeColor: modalState.draft.eyeColor,
@@ -914,10 +757,6 @@ function renderAppearanceModal() {
   };
 
   const optionLabel = getCurrentDraftOptionLabel();
-  const tattooAgeNote =
-    modalState.category === "tattoo" && Number(modalState.draft.age) < 18
-      ? `<small class="muted">A tatuagem fica visível a partir dos 18 anos (idade atual: ${modalState.draft.age}).</small>`
-      : "";
 
   modal.innerHTML = `
     <div class="appearance-modal-card" role="dialog" aria-modal="true" aria-label="Editar Avatar">
@@ -945,17 +784,25 @@ function renderAppearanceModal() {
       </div>
 
       <div class="appearance-option-label">${optionLabel}</div>
-      ${tattooAgeNote ? `<div style="text-align:center;">${tattooAgeNote}</div>` : ""}
 
       <div class="appearance-extra-controls">
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;">
-          Cor Cabelo:
-          <input type="color" id="modalHairColorInput" value="${modalState.draft.hairColor}" style="width:36px;height:30px;padding:1px;">
+          Estilo:
+          <select id="modalDiceStyleSelect" style="padding:4px 8px;font-size:0.82rem;">
+            ${DICE_STYLES.map(
+              (s) => `<option value="${s.id}" ${modalState.draft.diceStyle === s.id ? "selected" : ""}>${s.label}</option>`
+            ).join("")}
+          </select>
         </label>
 
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;">
-          Cor Roupa:
-          <input type="color" id="modalOutfitColorInput" value="${modalState.draft.outfitColor}" style="width:36px;height:30px;padding:1px;">
+          Cabelo:
+          <input type="color" id="modalHairColorInput" value="${modalState.draft.hairColor}" style="width:34px;height:28px;padding:1px;">
+        </label>
+
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;">
+          Roupa:
+          <input type="color" id="modalOutfitColorInput" value="${modalState.draft.outfitColor}" style="width:34px;height:28px;padding:1px;">
         </label>
       </div>
 
@@ -971,441 +818,4 @@ function renderAppearanceModal() {
     });
   });
 
-  document.getElementById("appPrevBtn")?.addEventListener("click", () => cycleDraftOption(-1));
-  document.getElementById("appNextBtn")?.addEventListener("click", () => cycleDraftOption(1));
-
-  document.getElementById("modalHairColorInput")?.addEventListener("input", (e) => {
-    modalState.draft.hairColor = e.target.value;
-    renderAppearanceModal();
-  });
-
-  document.getElementById("modalOutfitColorInput")?.addEventListener("input", (e) => {
-    modalState.draft.outfitColor = e.target.value;
-    renderAppearanceModal();
-  });
-
-  document.getElementById("saveAppearanceBtn")?.addEventListener("click", saveAppearanceModal);
-  document.getElementById("cancelAppearanceBtn")?.addEventListener("click", closeAppearanceModal);
-}
-
-function populateCountriesAndCities() {
-  const countrySelect = document.getElementById("playerCountrySelect");
-  if (!countrySelect) return;
-
-  countrySelect.innerHTML = Object.keys(COUNTRIES_DATA)
-    .map((country) => `<option value="${country}">${country}</option>`)
-    .join("");
-
-  onCountryChange();
-}
-
-function onCountryChange() {
-  const countrySelect = document.getElementById("playerCountrySelect");
-  const citySelect = document.getElementById("playerCitySelect");
-  const customCountryGroup = document.getElementById("customCountryGroup");
-  if (!countrySelect || !citySelect) return;
-
-  const selectedCountry = countrySelect.value;
-  if (customCountryGroup) {
-    customCountryGroup.style.display = selectedCountry === "Outro" ? "flex" : "none";
-  }
-
-  const cities = COUNTRIES_DATA[selectedCountry] || ["Outra Cidade"];
-  citySelect.innerHTML = cities
-    .map((city) => `<option value="${city}">${city}</option>`)
-    .join("");
-
-  onCitySelectChange();
-}
-
-function onCitySelectChange() {
-  const citySelect = document.getElementById("playerCitySelect");
-  const customCityGroup = document.getElementById("customCityGroup");
-  if (!citySelect || !customCityGroup) return;
-
-  customCityGroup.style.display = citySelect.value === "Outra Cidade" ? "flex" : "none";
-}
-
-function onSetupGenderChange() {
-  const sexSelect = document.getElementById("playerSex");
-  const hintEl = document.getElementById("nameHint");
-  if (!sexSelect) return;
-
-  setupState.sex = sexSelect.value;
-  setupState.avatarCustom = createDefaultAvatarCustom(setupState.sex, setupState.presetIndex);
-  if (hintEl) {
-    hintEl.textContent = `(${NAME_HINTS[setupState.sex] || "Ex: João"})`;
-  }
-  renderSetupAvatar();
-}
-
-function changeSetupAvatar(delta) {
-  const maxPresets = Object.keys(PRESET_CONFIGS).length;
-  setupState.presetIndex =
-    (((setupState.presetIndex - 1 + delta) % maxPresets) + maxPresets) % maxPresets + 1;
-  setupState.avatarCustom = createDefaultAvatarCustom(setupState.sex, setupState.presetIndex);
-  renderSetupAvatar();
-}
-
-function renderSetupAvatar() {
-  const stageEl = document.getElementById("setupAvatarStage");
-  const indexEl = document.getElementById("setupAvatarIndex");
-  if (indexEl) {
-    indexEl.textContent = `#${setupState.presetIndex}`;
-  }
-  if (!stageEl) return;
-
-  const previewPerson = {
-    name: document.getElementById("playerName")?.value.trim() || "Avatar",
-    surname: "",
-    sex: setupState.sex,
-    age: 18,
-    avatarCustom: setupState.avatarCustom
-  };
-
-  stageEl.innerHTML = renderAvatarLayersHTML(previewPerson);
-}
-
-function renderSetupFamilyList() {
-  const listEl = document.getElementById("setupFamilyList");
-  if (!listEl) return;
-
-  if (!setupState.family.length) {
-    listEl.innerHTML = `<p class="muted">Nenhum familiar adicionado ainda.</p>`;
-    return;
-  }
-
-  listEl.innerHTML = setupState.family
-    .map(
-      (member, idx) => `
-      <div class="person-card">
-        <strong>${member.name}</strong> (${member.relation}, ${member.age} anos, ${member.maritalStatus})
-        <button type="button" class="danger-btn" style="margin-left: 8px; padding: 4px 8px;" data-remove-fam="${idx}">X</button>
-      </div>
-    `
-    )
-    .join("");
-
-  listEl.querySelectorAll("[data-remove-fam]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const index = Number(btn.dataset.removeFam);
-      setupState.family.splice(index, 1);
-      renderSetupFamilyList();
-    });
-  });
-}
-
-function addFamilyMemberFromSetup() {
-  const nameInput = document.getElementById("famName");
-  const relationSelect = document.getElementById("famRelation");
-  const ageInput = document.getElementById("famAge");
-  const statusSelect = document.getElementById("famMaritalStatus");
-
-  const name = nameInput?.value.trim();
-  if (!name) {
-    showToast("Escreve o nome do familiar.");
-    return;
-  }
-
-  setupState.family.push({
-    name,
-    relation: relationSelect?.value || "Outro",
-    age: Math.max(0, Number(ageInput?.value) || 0),
-    maritalStatus: statusSelect?.value || "Solteiro/a"
-  });
-
-  if (nameInput) nameInput.value = "";
-  renderSetupFamilyList();
-}
-
-function getSelectedLocation() {
-  const countrySelect = document.getElementById("playerCountrySelect");
-  const customCountry = document.getElementById("playerCountryCustom")?.value.trim();
-  const citySelect = document.getElementById("playerCitySelect");
-  const customCity = document.getElementById("playerCityCustom")?.value.trim();
-
-  const country =
-    countrySelect?.value === "Outro"
-      ? customCountry || "Outro País"
-      : countrySelect?.value || "Portugal";
-
-  const city =
-    citySelect?.value === "Outra Cidade"
-      ? customCity || "Outra Cidade"
-      : citySelect?.value || "Lisboa";
-
-  return { country, city };
-}
-
-function startNewGame() {
-  const nameInput = document.getElementById("playerName");
-  const surnameInput = document.getElementById("playerSurname");
-  const sexSelect = document.getElementById("playerSex");
-
-  const name = nameInput?.value.trim() || "João";
-  const surname = surnameInput?.value.trim() || "";
-  const sex = sexSelect?.value || setupState.sex || "Masculino";
-  const { country, city } = getSelectedLocation();
-
-  gameState = createInitialGameState({
-    name,
-    surname,
-    sex,
-    country,
-    city,
-    presetIndex: setupState.presetIndex,
-    avatarCustom: { ...setupState.avatarCustom },
-    family: [...setupState.family],
-    events: [`Nasceu em ${city}, ${country} com 0 anos.`]
-  });
-
-  saveGame();
-  openGameScreen();
-}
-
-function openGameScreen() {
-  document.getElementById("setupScreen")?.classList.add("hidden");
-  document.getElementById("gameScreen")?.classList.remove("hidden");
-  renderAvatarEditorButton();
-  renderGameUI();
-}
-
-function renderHeaderAvatar() {
-  const container = document.getElementById("headerAvatarContainer");
-  if (!container || !gameState) return;
-
-  const stage = getLifeStage(gameState.age);
-  const effectiveHair = getEffectiveHairColor(gameState);
-
-  container.className = "header-avatar";
-  container.style.setProperty("--hair-color", effectiveHair);
-
-  container.innerHTML = `
-    <div class="avatar-hair-bar" title="Cor do cabelo"></div>
-    <div class="avatar-circle-inner">
-      ${renderAvatarLayersHTML(gameState)}
-    </div>
-    <span class="life-stage-badge">${stage.label}</span>
-  `;
-}
-
-function renderAvatarEditorButton() {
-  const container = document.getElementById("avatarEditorContainer");
-  if (!container || !gameState) return;
-
-  container.innerHTML = `
-    <p class="muted" style="margin-top:0;">
-      Personaliza olhos, pele, sobrancelhas, barba, cabelo, roupa e tatuagens num editor com setas.
-    </p>
-    <button type="button" class="primary-btn full-width" id="openGameEditAvatarBtn">
-      ✏️ Editar Avatar
-    </button>
-  `;
-
-  document.getElementById("openGameEditAvatarBtn")?.addEventListener("click", () => {
-    openAppearanceModal("game");
-  });
-}
-
-function renderGameUI() {
-  if (!gameState) return;
-
-  const stage = getLifeStage(gameState.age);
-  const fullName = `${gameState.name} ${gameState.surname}`.trim();
-
-  document.documentElement.style.setProperty(
-    "--hair-color",
-    getEffectiveHairColor(gameState)
-  );
-
-  const nameEl = document.getElementById("homePlayerName");
-  const locEl = document.getElementById("homePlayerLocation");
-  const ageEl = document.getElementById("homeAge");
-  const stageEl = document.getElementById("lifeStageValue");
-  const healthBar = document.getElementById("healthBar");
-  const healthVal = document.getElementById("healthValue");
-  const happyBar = document.getElementById("happinessBar");
-  const happyVal = document.getElementById("happinessValue");
-  const housingEl = document.getElementById("housingSummary");
-  const eduEl = document.getElementById("educationValue");
-  const jobEl = document.getElementById("jobValue");
-  const illEl = document.getElementById("illnessValue");
-
-  if (nameEl) nameEl.textContent = fullName;
-  if (locEl) locEl.textContent = `${gameState.city}, ${gameState.country}`;
-  if (ageEl) ageEl.textContent = String(gameState.age);
-  if (stageEl) stageEl.textContent = stage.label;
-  if (healthBar) healthBar.style.width = `${gameState.health}%`;
-  if (healthVal) healthVal.textContent = `${gameState.health}%`;
-  if (happyBar) happyBar.style.width = `${gameState.happiness}%`;
-  if (happyVal) happyVal.textContent = `${gameState.happiness}%`;
-  if (housingEl) housingEl.textContent = gameState.housing;
-  if (eduEl) eduEl.textContent = gameState.education;
-  if (jobEl) jobEl.textContent = gameState.job;
-  if (illEl) illEl.textContent = gameState.illness;
-
-  const totalWealthEl = document.getElementById("totalWealth");
-  const bankBalanceEl = document.getElementById("bankBalance");
-  const bankNameEl = document.getElementById("currentBankName");
-  const salaryEl = document.getElementById("annualSalary");
-  const debtEl = document.getElementById("debtValue");
-
-  if (totalWealthEl) totalWealthEl.textContent = `${gameState.money - gameState.debt} €`;
-  if (bankBalanceEl) bankBalanceEl.textContent = `${gameState.money} €`;
-  if (bankNameEl) bankNameEl.textContent = gameState.bankName;
-  if (salaryEl) salaryEl.textContent = `${gameState.salary} €`;
-  if (debtEl) debtEl.textContent = `${gameState.debt} €`;
-
-  const careerJobEl = document.getElementById("careerJob");
-  const careerSalaryEl = document.getElementById("careerSalary");
-  const careerEduEl = document.getElementById("careerEducation");
-  if (careerJobEl) careerJobEl.textContent = gameState.job;
-  if (careerSalaryEl) careerSalaryEl.textContent = `${gameState.salary} €`;
-  if (careerEduEl) careerEduEl.textContent = gameState.education;
-
-  const eventsEl = document.getElementById("recentEvents");
-  if (eventsEl) {
-    eventsEl.innerHTML = gameState.events
-      .map((ev) => `<div class="event-item">${ev}</div>`)
-      .join("");
-  }
-
-  const peopleListEl = document.getElementById("peopleList");
-  if (peopleListEl) {
-    if (!gameState.family.length) {
-      peopleListEl.innerHTML = `<p class="muted">Sem familiares registados.</p>`;
-    } else {
-      peopleListEl.innerHTML = gameState.family
-        .map(
-          (m) => `
-          <div class="person-card">
-            <strong>${m.name}</strong> — ${m.relation} (${m.age} anos)
-          </div>
-        `
-        )
-        .join("");
-    }
-  }
-
-  renderHeaderAvatar();
-}
-
-function advanceYear() {
-  if (!gameState) return;
-
-  const prevStage = getLifeStage(gameState.age);
-  gameState.age += 1;
-
-  gameState.family = gameState.family.map((m) => ({
-    ...m,
-    age: (Number(m.age) || 0) + 1
-  }));
-
-  if (gameState.age >= 6 && gameState.age < 12) {
-    gameState.education = "Ensino Básico";
-  } else if (gameState.age >= 12 && gameState.age < 18) {
-    gameState.education = "Ensino Secundário";
-  } else if (gameState.age >= 18) {
-    gameState.education = "Ensino Superior / Adulto";
-    if (gameState.salary === 0) {
-      gameState.salary = 14400;
-      gameState.job = "Estagiário / Trabalhador";
-    }
-    gameState.money += gameState.salary;
-  }
-
-  const nextStage = getLifeStage(gameState.age);
-  if (prevStage.id !== nextStage.id) {
-    pushEvent(`Entrou na fase de vida: ${nextStage.label}.`);
-  } else {
-    pushEvent("Completou mais um ano de vida.");
-  }
-
-  saveGame();
-  renderGameUI();
-}
-
-function bindTabsAndNavigation() {
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.dataset.tab;
-      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      document.querySelectorAll(".tab-content").forEach((sec) => {
-        sec.classList.toggle("hidden", sec.id !== targetTab);
-      });
-    });
-  });
-
-  document.querySelectorAll(".sub-nav").forEach((nav) => {
-    nav.querySelectorAll(".sub-btn").forEach((subBtn) => {
-      subBtn.addEventListener("click", () => {
-        const targetSub = subBtn.dataset.sub;
-        nav.querySelectorAll(".sub-btn").forEach((b) => b.classList.remove("active"));
-        subBtn.classList.add("active");
-
-        const parentSection = nav.parentElement;
-        parentSection?.querySelectorAll(".sub-content").forEach((box) => {
-          box.classList.toggle("hidden", box.id !== targetSub);
-        });
-      });
-    });
-  });
-}
-
-function bindMainButtons() {
-  document.getElementById("setupPrevAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(-1));
-  document.getElementById("setupNextAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(1));
-  document.getElementById("setupEditAvatarBtn")?.addEventListener("click", () => openAppearanceModal("setup"));
-  document.getElementById("playerSex")?.addEventListener("change", onSetupGenderChange);
-  document.getElementById("playerCountrySelect")?.addEventListener("change", onCountryChange);
-  document.getElementById("playerCitySelect")?.addEventListener("change", onCitySelectChange);
-
-  document.getElementById("addFamilyMemberBtn")?.addEventListener("click", addFamilyMemberFromSetup);
-  document.getElementById("startGameBtn")?.addEventListener("click", startNewGame);
-  document.getElementById("advanceYearBtn")?.addEventListener("click", advanceYear);
-
-  document.getElementById("continueGameBtn")?.addEventListener("click", () => {
-    const saved = loadSavedGame();
-    if (saved) {
-      gameState = saved;
-      openGameScreen();
-    }
-  });
-
-  document.getElementById("deleteSaveBtn")?.addEventListener("click", () => {
-    localStorage.removeItem(SAVE_KEY);
-    gameState = null;
-    document.getElementById("continuePanel")?.classList.add("hidden");
-    showToast("Jogo guardado apagado.");
-  });
-}
-
-function initApp() {
-  try {
-    document.getElementById("setupScreen")?.classList.remove("hidden");
-    document.getElementById("gameScreen")?.classList.add("hidden");
-    document.getElementById("deathScreen")?.classList.add("hidden");
-    document.getElementById("customModal")?.classList.add("hidden");
-
-    populateCountriesAndCities();
-    bindTabsAndNavigation();
-    bindMainButtons();
-    renderSetupAvatar();
-    renderSetupFamilyList();
-
-    const existingSave = loadSavedGame();
-    if (existingSave) {
-      document.getElementById("continuePanel")?.classList.remove("hidden");
-    }
-  } catch (err) {
-    console.error("Erro ao iniciar a aplicação:", err);
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
-}
+  document.getElementById("appPrevBtn")?.addEventListener("click
