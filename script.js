@@ -167,6 +167,13 @@ function getEffectiveHairColor(person) {
   return stage.id === "idoso" ? "#d8dee9" : chosen;
 }
 
+function getAgeAdjustedTop(person, hairOpt) {
+  const stage = getLifeStage(person.age);
+  if (stage.id === "bebe") return "shortCurly";
+  if (stage.id === "crianca" && hairOpt.diceTop === "longButNotTooLong") return "bob";
+  return hairOpt.diceTop;
+}
+
 function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
   const preset = PRESET_CONFIGS[presetIndex] || PRESET_CONFIGS[1];
   return {
@@ -249,6 +256,7 @@ function shadeHexColor(hex, percent) {
 
 function buildDiceBearUrl(person) {
   const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
+  const stage = getLifeStage(person.age);
   const style = custom.diceStyle || "avataaars";
   const hairHex = cleanHex(getEffectiveHairColor(person), "3b2618");
   const clothHex = cleanHex(custom.outfitColor, "3b82f6");
@@ -269,7 +277,7 @@ function buildDiceBearUrl(person) {
   const accOpt =
     APPEARANCE_OPTIONS.tattoo.find((o) => o.id === custom.tattoo) || APPEARANCE_OPTIONS.tattoo[0];
 
-  const seed = `${person.name || "starlife"}-${custom.presetIndex || 1}`;
+  const seed = `${person.name || "starlife"}-${stage.id}-${custom.presetIndex || 1}`;
   const params = new URLSearchParams();
   params.set("seed", seed);
   params.set("radius", "50");
@@ -280,11 +288,12 @@ function buildDiceBearUrl(person) {
     params.set("clothingColor", clothHex);
     params.set("eyes", eyeOpt.diceEye);
     params.set("eyebrows", browOpt.diceBrow);
-    params.set("top", hairOpt.diceTop);
-    params.set("clothing", clothOpt.diceCloth);
-    params.set("mouth", custom.mouthStyle || "default");
+    params.set("top", getAgeAdjustedTop(person, hairOpt));
+    params.set("clothing", stage.id === "bebe" ? "shirtCrewNeck" : clothOpt.diceCloth);
+    params.set("mouth", stage.id === "bebe" ? "twinkle" : custom.mouthStyle || "default");
 
-    if (beardOpt.diceBeard) {
+    const canHaveBeard = Number(person.age) >= 16 && beardOpt.diceBeard;
+    if (canHaveBeard) {
       params.set("facialHair", beardOpt.diceBeard);
       params.set("facialHairColor", hairHex);
       params.set("facialHairProbability", "100");
@@ -292,7 +301,8 @@ function buildDiceBearUrl(person) {
       params.set("facialHairProbability", "0");
     }
 
-    if (accOpt.diceAcc) {
+    const canHaveAccessory = Number(person.age) >= 6 && accOpt.diceAcc;
+    if (canHaveAccessory) {
       params.set("accessories", accOpt.diceAcc);
       params.set("accessoriesProbability", "100");
     } else {
@@ -317,10 +327,17 @@ function drawNaturalHair(ctx, style, hairColor, stage) {
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-
   ctx.fillStyle = grad;
   ctx.strokeStyle = darkHair;
   ctx.lineWidth = 2.2;
+
+  if (stage === "bebe") {
+    ctx.beginPath();
+    ctx.arc(0, -68, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
 
   ctx.beginPath();
   ctx.moveTo(-59, -38);
@@ -351,8 +368,11 @@ function generateCanvasFallbackDataUrl(person) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
+  const scale = stage === "bebe" ? 0.82 : stage === "crianca" ? 0.9 : 1.0;
+
   ctx.save();
-  ctx.translate(160, 174);
+  ctx.translate(160, stage === "bebe" ? 182 : 174);
+  ctx.scale(scale, scale);
 
   const skinDark = shadeHexColor(custom.skinTone, -22);
   const skinLight = shadeHexColor(custom.skinTone, 14);
@@ -386,7 +406,7 @@ function generateCanvasFallbackDataUrl(person) {
   faceGrad.addColorStop(1, skinDark);
   ctx.fillStyle = faceGrad;
   ctx.beginPath();
-  ctx.ellipse(0, -16, 57, 68, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, -16, stage === "bebe" ? 62 : 57, stage === "bebe" ? 64 : 68, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.strokeStyle = shadeHexColor(custom.skinTone, -45);
@@ -412,6 +432,21 @@ function generateCanvasFallbackDataUrl(person) {
     ctx.arc(x, -23, 2.7, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  if (stage !== "bebe" && stage !== "crianca" && Number(person.age) >= 16 && custom.facialHair !== "none") {
+    ctx.fillStyle = hairColor;
+    ctx.globalAlpha = 0.85;
+    if (custom.facialHair === "beard") {
+      ctx.beginPath();
+      ctx.ellipse(0, 34, 28, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.facialHair === "goatee") {
+      ctx.beginPath();
+      ctx.ellipse(0, 36, 11, 7.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
 
   drawNaturalHair(ctx, custom.hairStyle, hairColor, stage);
   ctx.restore();
