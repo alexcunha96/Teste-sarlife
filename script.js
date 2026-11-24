@@ -1,4 +1,4 @@
-const SAVE_KEY = "starlife_teste_save_v1";
+const SAVE_KEY = "starlife_teste_save_v2";
 
 const COUNTRIES_DATA = {
   "Portugal": ["Lisboa", "Porto", "Coimbra", "Braga", "Faro"],
@@ -120,6 +120,8 @@ const APPEARANCE_CATEGORIES = [
   { key: "tattoo", label: "Tatuagem" }
 ];
 
+const generatedLayerCache = new Map();
+
 function getLifeStage(age) {
   const safeAge = Math.max(0, Number(age) || 0);
   if (safeAge <= 3) return { id: "bebe", label: "Bebé" };
@@ -129,11 +131,10 @@ function getLifeStage(age) {
   return { id: "idoso", label: "Idoso" };
 }
 
-function getLegacyAvatarSrc(sex, presetIndex, age) {
-  const genderFolder = sex === "Feminino" ? "feminino" : "masculino";
-  const safePreset = Math.max(1, Number(presetIndex) || 1);
-  const stage = getLifeStage(age).id;
-  return `assets/modules/${genderFolder}/avatars/Avatar_${genderFolder}_${safePreset}_${stage}.png`;
+function getEffectiveHairColor(person) {
+  const stage = getLifeStage(person.age);
+  const chosen = person.avatarCustom?.hairColor || "#3b2618";
+  return stage.id === "idoso" ? "#d8dee9" : chosen;
 }
 
 function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
@@ -148,8 +149,7 @@ function createDefaultAvatarCustom(sex = "Masculino", presetIndex = 1) {
     hairColor: preset.hairColor,
     outfit: preset.outfit,
     outfitColor: sex === "Feminino" && presetIndex === 1 ? "#ec4899" : preset.outfitColor,
-    tattoo: preset.tattoo,
-    showLegacyImg: false
+    tattoo: preset.tattoo
   };
 }
 
@@ -180,7 +180,7 @@ function createInitialGameState(overrides = {}) {
     },
     events: Array.isArray(overrides.events)
       ? overrides.events
-      : ["Nasceu no StarLife teste! Começou com 0 anos."]
+      : ["Nasceu no StarLife! Começou com 0 anos."]
   };
 }
 
@@ -200,269 +200,297 @@ let modalState = {
   draft: null
 };
 
-const threeViewers = new Map();
-
-function getEffectiveHairColor(person) {
-  const stage = getLifeStage(person.age);
-  const chosen = person.avatarCustom?.hairColor || "#3b2618";
-  return stage.id === "idoso" ? "#d8dee9" : chosen;
+function sanitizeSlug(val) {
+  return String(val || "")
+    .replace(/[^a-zA-Z0-9_-]/g, "")
+    .toLowerCase();
 }
 
-function renderFallbackBadge(person) {
-  const stage = getLifeStage(person.age);
+function getLayerAssetUrls(person) {
+  const stage = getLifeStage(person.age).id;
   const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
   const hairColor = getEffectiveHairColor(person);
+  const baseFolder = "assets/avatars";
+
+  return [
+    {
+      layer: "base",
+      z: 1,
+      src: `${baseFolder}/base_${stage}_${sanitizeSlug(custom.skinTone)}.png`,
+      person,
+      color: custom.skinTone
+    },
+    {
+      layer: "outfit",
+      z: 2,
+      src: `${baseFolder}/outfit_${sanitizeSlug(custom.outfit)}_${sanitizeSlug(custom.outfitColor)}.png`,
+      person,
+      color: custom.outfitColor
+    },
+    {
+      layer: "tattoo",
+      z: 3,
+      src:
+        Number(person.age) >= 18 && custom.tattoo !== "none"
+          ? `${baseFolder}/tattoo_${sanitizeSlug(custom.tattoo)}.png`
+          : "",
+      person,
+      color: "#0f172a"
+    },
+    {
+      layer: "eyes",
+      z: 4,
+      src: `${baseFolder}/eyes_${sanitizeSlug(custom.eyeColor)}.png`,
+      person,
+      color: custom.eyeColor
+    },
+    {
+      layer: "brows",
+      z: 5,
+      src: `${baseFolder}/brows_${sanitizeSlug(custom.browStyle)}_${sanitizeSlug(hairColor)}.png`,
+      person,
+      color: hairColor
+    },
+    {
+      layer: "facialHair",
+      z: 6,
+      src:
+        Number(person.age) >= 14 && custom.facialHair !== "none"
+          ? `${baseFolder}/beard_${sanitizeSlug(custom.facialHair)}_${sanitizeSlug(hairColor)}.png`
+          : "",
+      person,
+      color: hairColor
+    },
+    {
+      layer: "hair",
+      z: 7,
+      src: `${baseFolder}/hair_${sanitizeSlug(custom.hairStyle)}_${sanitizeSlug(hairColor)}.png`,
+      person,
+      color: hairColor
+    }
+  ].filter((item) => Boolean(item.src));
+}
+
+function generateFallbackLayerDataUrl(layerSpec) {
+  const key = `${layerSpec.layer}|${layerSpec.color}|${layerSpec.person.avatarCustom.hairStyle}|${layerSpec.person.avatarCustom.browStyle}|${layerSpec.person.avatarCustom.facialHair}|${layerSpec.person.avatarCustom.outfit}|${layerSpec.person.avatarCustom.tattoo}|${getLifeStage(layerSpec.person.age).id}`;
+  if (generatedLayerCache.has(key)) {
+    return generatedLayerCache.get(key);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 320;
+  canvas.height = 320;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  const stage = getLifeStage(layerSpec.person.age).id;
+  const custom = layerSpec.person.avatarCustom;
+  const scale = stage === "bebe" ? 0.84 : stage === "crianca" ? 0.92 : 1.0;
+
+  ctx.save();
+  ctx.translate(160, 170);
+  ctx.scale(scale, scale);
+
+  if (layerSpec.layer === "base") {
+    ctx.fillStyle = custom.skinTone;
+    ctx.beginPath();
+    ctx.roundRect(-24, 34, 48, 42, 12);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(0, -18, 62, 74, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(-63, -14, 11, 18, -0.1, 0, Math.PI * 2);
+    ctx.ellipse(63, -14, 11, 18, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.35)";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(0, -24);
+    ctx.lineTo(-5, 2);
+    ctx.lineTo(6, 4);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#9f4a3e";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(0, 22, 16, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+  } else if (layerSpec.layer === "outfit") {
+    ctx.fillStyle = custom.outfitColor;
+    ctx.beginPath();
+    ctx.moveTo(-105, 145);
+    ctx.quadraticCurveTo(-85, 58, -22, 52);
+    ctx.lineTo(22, 52);
+    ctx.quadraticCurveTo(85, 58, 105, 145);
+    ctx.closePath();
+    ctx.fill();
+
+    if (custom.outfit === "smart") {
+      ctx.fillStyle = "#f8fafc";
+      ctx.beginPath();
+      ctx.moveTo(-18, 52);
+      ctx.lineTo(0, 82);
+      ctx.lineTo(18, 52);
+      ctx.closePath();
+      ctx.fill();
+    } else if (custom.outfit === "hoodie") {
+      ctx.strokeStyle = "rgba(255,255,255,0.45)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-10, 62);
+      ctx.lineTo(-10, 96);
+      ctx.moveTo(10, 62);
+      ctx.lineTo(10, 96);
+      ctx.stroke();
+    }
+  } else if (layerSpec.layer === "tattoo") {
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#0f172a";
+    if (custom.tattoo === "star") {
+      ctx.beginPath();
+      ctx.arc(68, 92, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.tattoo === "sleeve") {
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(54, 78);
+      ctx.lineTo(84, 98);
+      ctx.moveTo(58, 102);
+      ctx.lineTo(82, 80);
+      ctx.stroke();
+    } else if (custom.tattoo === "tribal") {
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(70, 94, 11, 0.4, Math.PI * 1.6);
+      ctx.stroke();
+    }
+  } else if (layerSpec.layer === "eyes") {
+    [-23, 23].forEach((x) => {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse(x, -26, 13, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = custom.eyeColor;
+      ctx.beginPath();
+      ctx.arc(x, -26, 6.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#090d16";
+      ctx.beginPath();
+      ctx.arc(x, -26, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x - 2, -28.5, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (layerSpec.layer === "brows") {
+    ctx.strokeStyle = getEffectiveHairColor(layerSpec.person);
+    ctx.lineWidth = custom.browStyle === "thick" ? 6 : 4;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(-36, -42);
+    ctx.quadraticCurveTo(-23, custom.browStyle === "arch" ? -51 : -43, -10, -42);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(10, -42);
+    ctx.quadraticCurveTo(23, custom.browStyle === "arch" ? -51 : -43, 36, -42);
+    ctx.stroke();
+  } else if (layerSpec.layer === "facialHair") {
+    ctx.fillStyle = getEffectiveHairColor(layerSpec.person);
+    if (custom.facialHair === "beard") {
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.arc(0, 6, 56, 0.15, Math.PI - 0.15);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (custom.facialHair === "goatee") {
+      ctx.beginPath();
+      ctx.ellipse(0, 34, 14, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.facialHair === "stubble") {
+      ctx.globalAlpha = 0.26;
+      ctx.beginPath();
+      ctx.arc(0, 8, 53, 0.2, Math.PI - 0.2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  } else if (layerSpec.layer === "hair") {
+    ctx.fillStyle = getEffectiveHairColor(layerSpec.person);
+    if (stage === "bebe") {
+      ctx.beginPath();
+      ctx.arc(0, -88, 10, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.hairStyle === "long") {
+      ctx.beginPath();
+      ctx.roundRect(-68, -92, 136, 152, 42);
+      ctx.fill();
+    } else if (custom.hairStyle === "ponytail") {
+      ctx.beginPath();
+      ctx.arc(0, -34, 65, Math.PI * 0.95, Math.PI * 2.05);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(52, -56, 26, 12, -0.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.hairStyle === "buzz") {
+      ctx.beginPath();
+      ctx.arc(0, -30, 63, Math.PI, Math.PI * 2);
+      ctx.fill();
+    } else if (custom.hairStyle === "medium") {
+      ctx.beginPath();
+      ctx.arc(0, -34, 67, Math.PI * 0.92, Math.PI * 2.08);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, -32, 65, Math.PI * 0.96, Math.PI * 2.04);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+
+  const url = canvas.toDataURL("image/png");
+  generatedLayerCache.set(key, url);
+  return url;
+}
+
+function renderAvatarLayersHTML(person) {
+  const layers = getLayerAssetUrls(person);
   return `
-    <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:radial-gradient(circle at top,#1e293b,#0f172a);color:#f8fafc;padding:6px;text-align:center;">
-      <span style="width:26px;height:26px;border-radius:50%;background:${custom.skinTone};border:3px solid ${hairColor};display:inline-block;"></span>
-      <span style="font-size:0.7rem;font-weight:700;">${stage.label}</span>
+    <div class="avatar-stack">
+      ${layers
+        .map((item) => {
+          const fallbackUrl = generateFallbackLayerDataUrl(item);
+          return `<img class="avatar-layer-img" data-layer="${item.layer}" style="z-index:${item.z};" src="${item.src}" data-fallback="${fallbackUrl}" alt="${item.layer}">`;
+        })
+        .join("")}
     </div>
   `;
 }
 
-function createAvatar3DGroup(person) {
-  const THREE = window.THREE;
-  const stage = getLifeStage(person.age);
-  const custom = person.avatarCustom || createDefaultAvatarCustom(person.sex, person.presetIndex);
-  const hairColor = getEffectiveHairColor(person);
-  const skinTone = custom.skinTone || "#f2c29b";
-  const eyeColor = custom.eyeColor || "#2563eb";
-  const outfitColor = custom.outfitColor || "#3b82f6";
-
-  const root = new THREE.Group();
-
-  const skinMat = new THREE.MeshStandardMaterial({ color: skinTone, roughness: 0.5, metalness: 0.05 });
-  const outfitMat = new THREE.MeshStandardMaterial({ color: outfitColor, roughness: 0.6, metalness: 0.08 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.45, metalness: 0.1 });
-  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.2 });
-  const irisMat = new THREE.MeshStandardMaterial({ color: eyeColor, roughness: 0.25 });
-
-  const stageScale =
-    stage.id === "bebe" ? 0.78 : stage.id === "crianca" ? 0.88 : stage.id === "adolescente" ? 0.95 : 1.0;
-
-  const headGeo = new THREE.SphereGeometry(0.66, 24, 24);
-  headGeo.scale(0.92, 1.05, 0.95);
-  const headMesh = new THREE.Mesh(headGeo, skinMat);
-  headMesh.position.set(0, 0.56, 0);
-  root.add(headMesh);
-
-  const earGeo = new THREE.SphereGeometry(0.14, 12, 12);
-  earGeo.scale(0.55, 1.0, 0.85);
-  const leftEar = new THREE.Mesh(earGeo, skinMat);
-  leftEar.position.set(-0.61, 0.54, 0);
-  const rightEar = new THREE.Mesh(earGeo, skinMat);
-  rightEar.position.set(0.61, 0.54, 0);
-  root.add(leftEar, rightEar);
-
-  const scleraGeo = new THREE.SphereGeometry(0.11, 12, 12);
-  scleraGeo.scale(1.15, 0.85, 0.6);
-  const irisGeo = new THREE.SphereGeometry(0.062, 12, 12);
-  irisGeo.scale(1, 1, 0.65);
-
-  const leftEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
-  leftEyeWhite.position.set(-0.22, 0.6, 0.56);
-  const rightEyeWhite = new THREE.Mesh(scleraGeo, eyeWhiteMat);
-  rightEyeWhite.position.set(0.22, 0.6, 0.56);
-
-  const leftIris = new THREE.Mesh(irisGeo, irisMat);
-  leftIris.position.set(-0.22, 0.6, 0.6);
-  const rightIris = new THREE.Mesh(irisGeo, irisMat);
-  rightIris.position.set(0.22, 0.6, 0.6);
-  root.add(leftEyeWhite, rightEyeWhite, leftIris, rightIris);
-
-  const browGeo = new THREE.BoxGeometry(0.23, custom.browStyle === "thick" ? 0.075 : 0.048, 0.08);
-  const leftBrow = new THREE.Mesh(browGeo, hairMat);
-  leftBrow.position.set(-0.22, 0.77, 0.56);
-  leftBrow.rotation.z = custom.browStyle === "arch" ? 0.12 : 0;
-
-  const rightBrow = new THREE.Mesh(browGeo, hairMat);
-  rightBrow.position.set(0.22, 0.77, 0.56);
-  rightBrow.rotation.z = custom.browStyle === "arch" ? -0.12 : 0;
-  root.add(leftBrow, rightBrow);
-
-  const noseGeo = new THREE.ConeGeometry(0.085, 0.19, 10);
-  const noseMesh = new THREE.Mesh(noseGeo, skinMat);
-  noseMesh.position.set(0, 0.51, 0.65);
-  noseMesh.rotation.x = Math.PI * 0.42;
-  root.add(noseMesh);
-
-  const mouthGeo = new THREE.TorusGeometry(0.13, 0.03, 8, 16, Math.PI);
-  const mouthMat = new THREE.MeshStandardMaterial({ color: "#9b4d3f", roughness: 0.4 });
-  const mouthMesh = new THREE.Mesh(mouthGeo, mouthMat);
-  mouthMesh.position.set(0, 0.32, 0.58);
-  mouthMesh.rotation.x = Math.PI;
-  root.add(mouthMesh);
-
-  if (Number(person.age) >= 14 && custom.facialHair && custom.facialHair !== "none") {
-    if (custom.facialHair === "beard") {
-      const beardGeo = new THREE.SphereGeometry(0.65, 20, 20, 0, Math.PI * 2, Math.PI * 0.48, Math.PI * 0.52);
-      beardGeo.scale(0.93, 1.0, 0.96);
-      const beardMesh = new THREE.Mesh(beardGeo, hairMat);
-      beardMesh.position.set(0, 0.52, 0.03);
-      root.add(beardMesh);
-    } else if (custom.facialHair === "goatee") {
-      const goateeGeo = new THREE.ConeGeometry(0.15, 0.23, 12);
-      const goateeMesh = new THREE.Mesh(goateeGeo, hairMat);
-      goateeMesh.position.set(0, 0.18, 0.58);
-      goateeMesh.rotation.x = Math.PI;
-      root.add(goateeMesh);
-    } else if (custom.facialHair === "stubble") {
-      const stubbleGeo = new THREE.SphereGeometry(0.64, 16, 16, 0, Math.PI * 2, Math.PI * 0.55, Math.PI * 0.45);
-      const stubbleMat = new THREE.MeshStandardMaterial({ color: hairColor, transparent: true, opacity: 0.28, roughness: 0.8 });
-      const stubbleMesh = new THREE.Mesh(stubbleGeo, stubbleMat);
-      stubbleMesh.position.set(0, 0.53, 0.02);
-      root.add(stubbleMesh);
-    }
-  }
-
-  if (stage.id === "bebe") {
-    const tuftGeo = new THREE.ConeGeometry(0.12, 0.2, 10);
-    const tuft = new THREE.Mesh(tuftGeo, hairMat);
-    tuft.position.set(0, 1.3, 0.04);
-    root.add(tuft);
-  } else if (custom.hairStyle === "long") {
-    const capGeo = new THREE.SphereGeometry(0.7, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.65);
-    const capMesh = new THREE.Mesh(capGeo, hairMat);
-    capMesh.position.set(0, 0.6, -0.02);
-
-    const backGeo = new THREE.CylinderGeometry(0.54, 0.62, 1.25, 16);
-    const backMesh = new THREE.Mesh(backGeo, hairMat);
-    backMesh.position.set(0, 0.08, -0.2);
-    root.add(capMesh, backMesh);
-  } else if (custom.hairStyle === "ponytail") {
-    const capGeo = new THREE.SphereGeometry(0.69, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.58);
-    const capMesh = new THREE.Mesh(capGeo, hairMat);
-    capMesh.position.set(0, 0.6, 0);
-
-    const tailGeo = new THREE.ConeGeometry(0.22, 0.78, 14);
-    const tailMesh = new THREE.Mesh(tailGeo, hairMat);
-    tailMesh.position.set(0, 0.62, -0.74);
-    tailMesh.rotation.x = -Math.PI * 0.35;
-    root.add(capMesh, tailMesh);
-  } else if (custom.hairStyle === "buzz") {
-    const buzzGeo = new THREE.SphereGeometry(0.675, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.52);
-    const buzzMesh = new THREE.Mesh(buzzGeo, hairMat);
-    buzzMesh.position.set(0, 0.58, 0);
-    root.add(buzzMesh);
-  } else if (custom.hairStyle === "medium") {
-    const medGeo = new THREE.SphereGeometry(0.71, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.62);
-    const medMesh = new THREE.Mesh(medGeo, hairMat);
-    medMesh.position.set(0, 0.59, -0.02);
-    root.add(medMesh);
-  } else {
-    const shortGeo = new THREE.SphereGeometry(0.69, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.56);
-    const shortMesh = new THREE.Mesh(shortGeo, hairMat);
-    shortMesh.position.set(0, 0.6, 0.02);
-    root.add(shortMesh);
-  }
-
-  const neckGeo = new THREE.CylinderGeometry(0.21, 0.24, 0.3, 14);
-  const neckMesh = new THREE.Mesh(neckGeo, skinMat);
-  neckMesh.position.set(0, -0.12, 0);
-  root.add(neckMesh);
-
-  const torsoGeo = new THREE.CylinderGeometry(0.54, 0.64, 1.05, 20);
-  const torsoMesh = new THREE.Mesh(torsoGeo, outfitMat);
-  torsoMesh.position.set(0, -0.72, 0);
-  root.add(torsoMesh);
-
-  const armGeo = new THREE.CylinderGeometry(0.14, 0.12, 0.85, 14);
-  const leftArm = new THREE.Mesh(armGeo, skinMat);
-  leftArm.position.set(-0.75, -0.64, 0);
-  leftArm.rotation.z = -0.14;
-
-  const rightArm = new THREE.Mesh(armGeo, skinMat);
-  rightArm.position.set(0.75, -0.64, 0);
-  rightArm.rotation.z = 0.14;
-
-  const sleeveGeo = new THREE.CylinderGeometry(0.17, 0.16, 0.34, 14);
-  const leftSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
-  leftSleeve.position.set(-0.69, -0.36, 0);
-  leftSleeve.rotation.z = -0.14;
-
-  const rightSleeve = new THREE.Mesh(sleeveGeo, outfitMat);
-  rightSleeve.position.set(0.69, -0.36, 0);
-  rightSleeve.rotation.z = 0.14;
-
-  root.add(leftArm, rightArm, leftSleeve, rightSleeve);
-
-  if (Number(person.age) >= 18 && custom.tattoo && custom.tattoo !== "none") {
-    const tatGeo =
-      custom.tattoo === "sleeve"
-        ? new THREE.CylinderGeometry(0.146, 0.132, 0.38, 14, 1, true)
-        : new THREE.SphereGeometry(0.075, 10, 10);
-    const tatMat = new THREE.MeshStandardMaterial({ color: "#0f172a", roughness: 0.7, side: THREE.DoubleSide });
-    const tatMesh = new THREE.Mesh(tatGeo, tatMat);
-    tatMesh.position.set(0.78, -0.72, 0.04);
-    root.add(tatMesh);
-  }
-
-  root.scale.setScalar(stageScale);
-  root.position.set(0, 0.08, 0);
-  return root;
-}
-
-function mount3DAvatar(container, person, options = {}) {
+function bindAvatarFallbackHandlers(container) {
   if (!container) return;
-  const THREE = window.THREE;
-  const size = options.size || Math.max(container.clientWidth, container.clientHeight, 132);
-
-  if (!THREE || typeof THREE.WebGLRenderer !== "function") {
-    container.innerHTML = renderFallbackBadge(person);
-    return;
-  }
-
-  try {
-    let entry = threeViewers.get(container);
-
-    if (!entry) {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-      camera.position.set(0, 0.12, 4.65);
-
-      const renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: false,
-        powerPreference: "low-power"
-      });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-      renderer.setSize(size, size, false);
-
-      const ambient = new THREE.AmbientLight(0xffffff, 1.15);
-      const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.45);
-      keyLight.position.set(2.2, 3.2, 3.8);
-      const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.75);
-      rimLight.position.set(-2.5, 1.5, -2.0);
-
-      scene.add(ambient, keyLight, rimLight);
-
-      container.innerHTML = "";
-      container.appendChild(renderer.domElement);
-
-      entry = { scene, camera, renderer, avatarGroup: null, animId: null };
-      threeViewers.set(container, entry);
-
-      const animate = () => {
-        entry.animId = requestAnimationFrame(animate);
-        if (entry.avatarGroup) {
-          entry.avatarGroup.rotation.y = Math.sin(Date.now() * 0.0012) * 0.24;
+  container.querySelectorAll("img.avatar-layer-img").forEach((img) => {
+    img.addEventListener(
+      "error",
+      () => {
+        const fallback = img.dataset.fallback;
+        if (fallback && img.src !== fallback) {
+          img.src = fallback;
         }
-        entry.renderer.render(entry.scene, entry.camera);
-      };
-      animate();
-    }
-
-    if (entry.avatarGroup) {
-      entry.scene.remove(entry.avatarGroup);
-    }
-    entry.renderer.setSize(size, size, false);
-    entry.avatarGroup = createAvatar3DGroup(person);
-    entry.scene.add(entry.avatarGroup);
-    entry.renderer.render(entry.scene, entry.camera);
-  } catch (err) {
-    console.warn("WebGL indisponível, a usar visualização alternativa:", err);
-    container.innerHTML = renderFallbackBadge(person);
-  }
+      },
+      { once: true }
+    );
+  });
 }
 
 function showToast(msg) {
@@ -534,11 +562,6 @@ function closeAppearanceModal() {
   modalState.draft = null;
   const modal = document.getElementById("customModal");
   if (modal) {
-    const mount = modal.querySelector(".three-avatar-mount");
-    if (mount && threeViewers.has(mount)) {
-      cancelAnimationFrame(threeViewers.get(mount).animId);
-      threeViewers.delete(mount);
-    }
     modal.innerHTML = "";
     modal.classList.add("hidden");
   }
@@ -608,8 +631,7 @@ function saveAppearanceModal() {
     hairColor: modalState.draft.hairColor,
     outfit: modalState.draft.outfit,
     outfitColor: modalState.draft.outfitColor,
-    tattoo: modalState.draft.tattoo,
-    showLegacyImg: Boolean(modalState.draft.showLegacyImg)
+    tattoo: modalState.draft.tattoo
   };
 
   if (modalState.target === "setup") {
@@ -665,8 +687,8 @@ function renderAppearanceModal() {
 
       <div class="appearance-stage-row">
         <button type="button" class="side-arrow-btn" id="appPrevBtn" aria-label="Anterior">◀</button>
-        <div class="appearance-portrait-box">
-          <div class="three-avatar-mount" id="modalThreeMount"></div>
+        <div class="appearance-portrait-box" id="modalPortraitBox">
+          ${renderAvatarLayersHTML(draftPerson)}
         </div>
         <button type="button" class="side-arrow-btn" id="appNextBtn" aria-label="Seguinte">▶</button>
       </div>
@@ -684,10 +706,6 @@ function renderAppearanceModal() {
           Cor Roupa:
           <input type="color" id="modalOutfitColorInput" value="${modalState.draft.outfitColor}" style="width:36px;height:30px;padding:1px;">
         </label>
-
-        <button type="button" class="secondary-btn" id="modalToggleLegacyBtn" style="padding:6px 10px;font-size:0.8rem;">
-          PNG Antigo: ${modalState.draft.showLegacyImg ? "ON" : "OFF"}
-        </button>
       </div>
 
       <button type="button" class="save-btn full-width" id="saveAppearanceBtn">Guardar</button>
@@ -695,10 +713,7 @@ function renderAppearanceModal() {
     </div>
   `;
 
-  const mountEl = document.getElementById("modalThreeMount");
-  if (mountEl) {
-    mount3DAvatar(mountEl, draftPerson, { size: 184 });
-  }
+  bindAvatarFallbackHandlers(document.getElementById("modalPortraitBox"));
 
   modal.querySelectorAll("[data-app-cat]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -717,11 +732,6 @@ function renderAppearanceModal() {
 
   document.getElementById("modalOutfitColorInput")?.addEventListener("input", (e) => {
     modalState.draft.outfitColor = e.target.value;
-    renderAppearanceModal();
-  });
-
-  document.getElementById("modalToggleLegacyBtn")?.addEventListener("click", () => {
-    modalState.draft.showLegacyImg = !modalState.draft.showLegacyImg;
     renderAppearanceModal();
   });
 
@@ -789,22 +799,12 @@ function changeSetupAvatar(delta) {
 }
 
 function renderSetupAvatar() {
-  const imgEl = document.getElementById("setupAvatarImg");
+  const stageEl = document.getElementById("setupAvatarStage");
   const indexEl = document.getElementById("setupAvatarIndex");
   if (indexEl) {
     indexEl.textContent = `#${setupState.presetIndex}`;
   }
-  if (!imgEl || !imgEl.parentElement) return;
-
-  imgEl.removeAttribute("style");
-  imgEl.src = getLegacyAvatarSrc(setupState.sex, setupState.presetIndex, 18);
-
-  let mountHolder = imgEl.parentElement.querySelector(".three-avatar-mount");
-  if (!mountHolder) {
-    mountHolder = document.createElement("div");
-    mountHolder.className = "three-avatar-mount";
-    imgEl.parentElement.appendChild(mountHolder);
-  }
+  if (!stageEl) return;
 
   const previewPerson = {
     name: document.getElementById("playerName")?.value.trim() || "Avatar",
@@ -813,19 +813,9 @@ function renderSetupAvatar() {
     age: 18,
     avatarCustom: setupState.avatarCustom
   };
-  mount3DAvatar(mountHolder, previewPerson, { size: 132 });
 
-  const navRow = document.querySelector(".avatar-nav-row");
-  if (navRow && !document.getElementById("setupEditAvatarBtn")) {
-    const editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.id = "setupEditAvatarBtn";
-    editBtn.className = "secondary-btn";
-    editBtn.textContent = "Editar Avatar";
-    editBtn.style.marginTop = "10px";
-    editBtn.addEventListener("click", () => openAppearanceModal("setup"));
-    navRow.parentElement.appendChild(editBtn);
-  }
+  stageEl.innerHTML = renderAvatarLayersHTML(previewPerson);
+  bindAvatarFallbackHandlers(stageEl);
 }
 
 function renderSetupFamilyList() {
@@ -842,16 +832,19 @@ function renderSetupFamilyList() {
       (member, idx) => `
       <div class="person-card">
         <strong>${member.name}</strong> (${member.relation}, ${member.age} anos, ${member.maritalStatus})
-        <button type="button" class="danger-btn" style="margin-left: 8px; padding: 4px 8px;" onclick="removeSetupFamily(${idx})">X</button>
+        <button type="button" class="danger-btn" style="margin-left: 8px; padding: 4px 8px;" data-remove-fam="${idx}">X</button>
       </div>
     `
     )
     .join("");
-}
 
-function removeSetupFamily(index) {
-  setupState.family.splice(index, 1);
-  renderSetupFamilyList();
+  listEl.querySelectorAll("[data-remove-fam]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = Number(btn.dataset.removeFam);
+      setupState.family.splice(index, 1);
+      renderSetupFamilyList();
+    });
+  });
 }
 
 function addFamilyMemberFromSetup() {
@@ -934,48 +927,25 @@ function renderHeaderAvatar() {
   if (!container || !gameState) return;
 
   const stage = getLifeStage(gameState.age);
-  const custom = gameState.avatarCustom;
   const effectiveHair = getEffectiveHairColor(gameState);
-  const legacySrc = getLegacyAvatarSrc(gameState.sex, custom.presetIndex, gameState.age);
 
-  container.className = custom.showLegacyImg
-    ? "header-avatar show-legacy-mode"
-    : "header-avatar";
+  container.className = "header-avatar";
   container.style.setProperty("--hair-color", effectiveHair);
 
-  let innerCircle = container.querySelector(".avatar-circle-inner");
-  let badge = container.querySelector(".life-stage-badge");
-  let hairBar = container.querySelector(".avatar-hair-bar");
+  container.innerHTML = `
+    <div class="avatar-hair-bar" title="Cor do cabelo"></div>
+    <div class="avatar-circle-inner">
+      ${renderAvatarLayersHTML(gameState)}
+    </div>
+    <span class="life-stage-badge">${stage.label}</span>
+  `;
 
-  if (!hairBar || !innerCircle || !badge) {
-    container.innerHTML = `
-      <div class="avatar-hair-bar" title="Cor do cabelo"></div>
-      <div class="avatar-circle-inner">
-        <img class="legacy-avatar-img" src="${legacySrc}" alt="Avatar PNG antigo">
-        <div class="three-avatar-mount" id="headerThreeMount"></div>
-      </div>
-      <span class="life-stage-badge">${stage.label}</span>
-    `;
-    innerCircle = container.querySelector(".avatar-circle-inner");
-    badge = container.querySelector(".life-stage-badge");
-  } else {
-    const imgEl = innerCircle.querySelector("img.legacy-avatar-img");
-    if (imgEl) imgEl.src = legacySrc;
-    badge.textContent = stage.label;
-  }
-
-  const mountEl = innerCircle.querySelector(".three-avatar-mount");
-  if (mountEl) {
-    mount3DAvatar(mountEl, gameState, { size: 74 });
-  }
+  bindAvatarFallbackHandlers(container);
 }
 
 function renderAvatarEditorButton() {
   const container = document.getElementById("avatarEditorContainer");
   if (!container || !gameState) return;
-
-  const custom = gameState.avatarCustom;
-  container.className = custom.showLegacyImg ? "show-legacy-mode" : "";
 
   container.innerHTML = `
     <p class="muted" style="margin-top:0;">
@@ -1039,6 +1009,13 @@ function renderGameUI() {
   if (bankNameEl) bankNameEl.textContent = gameState.bankName;
   if (salaryEl) salaryEl.textContent = `${gameState.salary} €`;
   if (debtEl) debtEl.textContent = `${gameState.debt} €`;
+
+  const careerJobEl = document.getElementById("careerJob");
+  const careerSalaryEl = document.getElementById("careerSalary");
+  const careerEduEl = document.getElementById("careerEducation");
+  if (careerJobEl) careerJobEl.textContent = gameState.job;
+  if (careerSalaryEl) careerSalaryEl.textContent = `${gameState.salary} €`;
+  if (careerEduEl) careerEduEl.textContent = gameState.education;
 
   const eventsEl = document.getElementById("recentEvents");
   if (eventsEl) {
@@ -1132,6 +1109,13 @@ function bindTabsAndNavigation() {
 }
 
 function bindMainButtons() {
+  document.getElementById("setupPrevAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(-1));
+  document.getElementById("setupNextAvatarBtn")?.addEventListener("click", () => changeSetupAvatar(1));
+  document.getElementById("setupEditAvatarBtn")?.addEventListener("click", () => openAppearanceModal("setup"));
+  document.getElementById("playerSex")?.addEventListener("change", onSetupGenderChange);
+  document.getElementById("playerCountrySelect")?.addEventListener("change", onCountryChange);
+  document.getElementById("playerCitySelect")?.addEventListener("change", onCitySelectChange);
+
   document.getElementById("addFamilyMemberBtn")?.addEventListener("click", addFamilyMemberFromSetup);
   document.getElementById("startGameBtn")?.addEventListener("click", startNewGame);
   document.getElementById("advanceYearBtn")?.addEventListener("click", advanceYear);
