@@ -146,7 +146,7 @@ button:active {
   color: #fca5a5;
 }
 
-/* Avatar 3D no Setup */
+/* Avatar no Setup */
 .avatar-stage-circle {
   position: relative;
   width: 132px !important;
@@ -306,7 +306,6 @@ img.legacy-avatar-img {
   gap: 8px;
 }
 
-/* Corpo e Navegação */
 .game-body {
   flex: 1;
   width: 100%;
@@ -410,7 +409,7 @@ img.legacy-avatar-img {
   border-color: rgba(59, 130, 246, 0.5);
 }
 
-/* Modal Editar Avatar 3D */
+/* Modal Editar Avatar */
 .modal-overlay {
   position: fixed;
   inset: 0;
