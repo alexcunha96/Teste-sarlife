@@ -146,22 +146,22 @@ button:active {
   color: #fca5a5;
 }
 
-/* Avatar no Setup */
+/* Avatar 3D no Setup */
 .avatar-stage-circle {
   position: relative;
-  width: 128px !important;
-  height: 128px !important;
-  max-width: 128px !important;
-  max-height: 128px !important;
+  width: 132px !important;
+  height: 132px !important;
+  max-width: 132px !important;
+  max-height: 132px !important;
   margin: 12px auto;
   border-radius: 50%;
   overflow: hidden !important;
   border: 3px solid var(--accent-color);
-  background: radial-gradient(circle at 35% 25%, #eff6ff 0%, #bfdbfe 75%, #93c5fd 100%);
+  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
 }
 
 .avatar-nav-row {
@@ -195,10 +195,10 @@ button:active {
 
 .header-avatar {
   position: relative;
-  width: 72px !important;
-  height: 72px !important;
-  max-width: 72px !important;
-  max-height: 72px !important;
+  width: 74px !important;
+  height: 74px !important;
+  max-width: 74px !important;
+  max-height: 74px !important;
   flex-shrink: 0;
 }
 
@@ -209,7 +209,7 @@ button:active {
   border-radius: 50%;
   overflow: hidden !important;
   border: 2.5px solid var(--accent-color);
-  background: radial-gradient(circle at 35% 25%, #eff6ff 0%, #bfdbfe 75%, #93c5fd 100%);
+  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,18 +271,21 @@ img.legacy-avatar-img {
   z-index: 4;
 }
 
-.show-legacy-mode .svg-avatar-layer,
-.show-legacy-mode .setup-svg-holder {
+.show-legacy-mode .three-avatar-mount {
   display: none !important;
 }
 
-.setup-svg-holder,
-.svg-avatar-layer {
+.three-avatar-mount {
   width: 100%;
   height: 100%;
-  display: block;
   position: relative;
   z-index: 3;
+}
+
+.three-avatar-mount canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 .player-info-main h2 {
@@ -407,7 +410,7 @@ img.legacy-avatar-img {
   border-color: rgba(59, 130, 246, 0.5);
 }
 
-/* Modal Editar Avatar (estilo Appearance com setas laterais) */
+/* Modal Editar Avatar 3D */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -455,7 +458,6 @@ img.legacy-avatar-img {
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 4px;
-  scrollbar-width: thin;
 }
 
 .app-cat-btn {
@@ -499,13 +501,13 @@ img.legacy-avatar-img {
 
 .appearance-portrait-box {
   position: relative;
-  width: 176px;
-  height: 176px;
+  width: 184px;
+  height: 184px;
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.25);
-  background: radial-gradient(circle at 35% 22%, #f8fafc 0%, #cbd5e1 68%, #94a3b8 100%);
+  background: radial-gradient(circle at 30% 20%, #334155 0%, #0f172a 85%);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
