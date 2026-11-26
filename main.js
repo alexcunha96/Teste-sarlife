@@ -20,7 +20,6 @@ function loadGame() {
     if (!saved) return null;
     const loaded = JSON.parse(saved);
     if (!loaded || !loaded.player || !Array.isArray(loaded.family)) return null;
-    // Saves de personagens já falecidos não são carregáveis.
     if (loaded.player.alive === false) {
       localStorage.removeItem(SAVE_KEY);
       return null;
@@ -142,13 +141,28 @@ function renderCareer() {
   const jobContainer = $("jobOptions");
   if (jobContainer) {
     jobContainer.innerHTML = "";
-    if (player.age >= 16) {
-      jobContainer.innerHTML = `
-        <button class="secondary-btn" onclick="applyJob('Empregado/a', 12000)">Empregado/a · ${money(12000)}/ano</button>
-        <button class="secondary-btn" onclick="applyJob('Assistente', 16500)">Assistente · ${money(16500)}/ano</button>
-      `;
-    } else {
+    if (player.age < 16) {
       jobContainer.innerHTML = `<p class="muted">Procura emprego a partir dos 16 anos.</p>`;
+    } else if (player.retired) {
+      jobContainer.innerHTML = `<p class="muted">Já estás reformado/a e a receber pensão anual.</p>`;
+    } else {
+      if (player.job) {
+        jobContainer.innerHTML += `
+          <button type="button" class="primary-btn full-width" ${player.workedHardThisYear ? "disabled" : ""} onclick="workHarder()">
+            ${player.workedHardThisYear ? "💪 Já trabalhaste mais este ano" : `💪 Trabalhar Mais (Desempenho: ${player.jobPerformance ?? 50}%)`}
+          </button>
+        `;
+      }
+
+      const eligibleJobs = jobCatalog.filter(j => (player.educationLevel ?? 0) >= j.minEdu);
+      eligibleJobs.forEach(j => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "secondary-btn full-width";
+        btn.textContent = `${j.title} · ${money(j.salary)}/ano`;
+        btn.onclick = () => applyJob(j.title, j.salary);
+        jobContainer.appendChild(btn);
+      });
     }
   }
 
@@ -158,8 +172,10 @@ function renderCareer() {
 
 function applyJob(name, salary) {
   if (game.player.age < 16) { showToast("Precisas de ter 16 anos."); return; }
+  game.player.retired = false;
   game.player.job = name;
   game.player.salary = salary;
+  game.player.jobPerformance = 55;
   addEvent(`Começaste a trabalhar como ${name}!`);
   saveGame();
   renderGame();
@@ -209,7 +225,7 @@ function boot() {
     if (!name) return;
     initialFamily.push({
       name,
-      surname: "", // preenchido com o apelido do jogador ao começar o jogo
+      surname: "",
       relation: $("famRelation").value,
       age: Number($("famAge").value) || 30,
       maritalStatus: $("famMaritalStatus").value
@@ -217,6 +233,15 @@ function boot() {
     $("famName").value = "";
     updateSetupFamilyUI();
   });
+
+  $("meetFriendBtn")?.addEventListener("click", () => meetNewPerson("friend"));
+  $("meetRomanceBtn")?.addEventListener("click", () => meetNewPerson("romance"));
+  $("haveChildBtn")?.addEventListener("click", haveChild);
+
+  $("gymActivityBtn")?.addEventListener("click", () => doLifestyleActivity("gym"));
+  $("vacationActivityBtn")?.addEventListener("click", () => doLifestyleActivity("vacation"));
+  $("lotteryActivityBtn")?.addEventListener("click", () => doLifestyleActivity("lottery"));
+  $("crimeActivityBtn")?.addEventListener("click", () => doLifestyleActivity("crime"));
 
   $("openMedicalCenterBtn")?.addEventListener("click", () => setMedicalCenterOpen(true));
   $("closeMedicalCenterBtn")?.addEventListener("click", () => setMedicalCenterOpen(false));
