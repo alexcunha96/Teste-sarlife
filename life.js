@@ -1,7 +1,7 @@
 "use strict";
 
 /* =========================================
-   STARLIFE · VIDA — escola, família, saúde, morte e avançar ano
+   STARLIFE · VIDA — escola, carreira, família, relações, atividades, saúde, morte e avançar ano
 ========================================= */
 
 function getCurrentEducationStage(age) {
@@ -16,13 +16,16 @@ function initializeEducation(player) {
   player.universityCourse ??= null;
   player.universityProgress ??= 0;
   player.studiedThisYear ??= false;
+  player.workedHardThisYear ??= false;
+  player.jobPerformance ??= 50;
+  player.retired ??= false;
+  player.didLifestyleActionThisYear ??= false;
 }
 
 function processSchoolYear() {
   const player = game.player;
   const stage = getCurrentEducationStage(player.age);
   if (!stage || player.age > 17) return;
-  // A média agora depende da inteligência (estudar mais faz diferença).
   const base = (player.intelligence / 100) * 12 + 6;
   player.schoolGrade = clamp(Math.round(base + randomNumber(-2, 2)), 5, 20);
   if (player.age === 14) { player.education = "Ensino básico"; player.educationLevel = 1; }
@@ -38,6 +41,51 @@ function studyHarder() {
   addEvent("Estudaste com afinco. 📖");
   saveGame();
   renderGame();
+}
+
+function workHarder() {
+  const player = game.player;
+  if (!player.job || player.retired) { showToast("Precisas de um emprego ativo."); return; }
+  if (player.workedHardThisYear) { showToast("Já deste o teu melhor este ano no trabalho."); return; }
+  player.workedHardThisYear = true;
+  player.jobPerformance = clamp((player.jobPerformance ?? 50) + randomNumber(8, 15));
+  player.happiness = clamp(player.happiness - 2);
+  addEvent(`Trabalhaste arduamente como ${player.job}. 💪`, "positive");
+  showToast("Desempenho profissional aumentou!");
+  saveGame();
+  renderGame();
+}
+
+function processCareerYear() {
+  const player = game.player;
+  if (!player.job || player.retired) return;
+
+  // Reforma automática aos 67 anos
+  if (player.age >= 67) {
+    const pension = Math.max(6000, Math.round(player.salary * 0.65));
+    player.retired = true;
+    player.job = "Reformado/a";
+    player.salary = pension;
+    addEvent(`ReFormaste-te aos 67 anos! Pensão anual: ${money(pension)}. 🧓`, "positive");
+    return;
+  }
+
+  // Chance anual de promoção / aumento baseada no desempenho
+  const perf = player.jobPerformance ?? 50;
+  if (perf >= 75 && Math.random() < 0.35) {
+    const currentCatalogEntry = jobCatalog.find(j => j.title === player.job);
+    const raise = currentCatalogEntry ? currentCatalogEntry.promoBonus : Math.round(player.salary * 0.12);
+    player.salary += raise;
+    if (currentCatalogEntry?.nextTitle) {
+      player.job = currentCatalogEntry.nextTitle;
+      addEvent(`Foste promovido/a a ${player.job}! Novo salário: ${money(player.salary)}/ano. 🎉`, "positive");
+    } else {
+      addEvent(`Recebeste um aumento salarial! Novo salário: ${money(player.salary)}/ano. 📈`, "positive");
+    }
+    player.jobPerformance = 55;
+  } else {
+    player.jobPerformance = clamp(perf - 3);
+  }
 }
 
 function enrollUniversity(index) {
@@ -70,11 +118,11 @@ function processFurtherEducation() {
     if (course) {
       player.job = course.job;
       player.salary = Math.max(player.salary, course.salary);
+      player.retired = false;
     }
     player.universityCourse = null;
     addEvent(`🎓 Licenciatura concluída em ${course?.name}! Começaste a trabalhar como ${course?.job || "licenciado/a"}.`, "positive");
   } else if (course) {
-    // Propina do ano seguinte (o 1.º ano é pago na inscrição).
     player.bank -= course.cost;
     addFinanceEvent(`Propinas de ${course.name}: ${money(course.cost)}.`);
   }
@@ -128,8 +176,8 @@ function generateName(sex) {
 }
 
 function sexFromRelation(relation) {
-  if (relation === "Mãe" || relation === "Avó") return "Feminino";
-  if (relation === "Pai" || relation === "Avô") return "Masculino";
+  if (relation === "Mãe" || relation === "Avó" || relation === "Namorada" || relation === "Esposa" || relation === "Filha") return "Feminino";
+  if (relation === "Pai" || relation === "Avô" || relation === "Namorado" || relation === "Marido" || relation === "Filho") return "Masculino";
   return "Outro";
 }
 
@@ -145,19 +193,94 @@ function createFamilyMember(data) {
     maritalStatus: data.maritalStatus || data.relationshipStatus || "",
     alive: true,
     relationship: data.relationship ?? randomNumber(70, 95),
-    // A idade máxima nunca fica abaixo da idade atual (ex.: avô com 95 anos).
     maxAge: Math.max(randomNumber(78, 102), age + randomNumber(1, 8)),
     job: "",
     salary: 0
   };
 }
 
+function meetNewPerson(kind = "friend") {
+  const player = game.player;
+  if (player.age < 6) { showToast("Ainda és demasiado novo/a para sair sozinho/a."); return; }
+  if (kind === "romance" && player.age < 16) { showToast("Encontros românticos disponíveis a partir dos 16 anos."); return; }
+
+  const sex = Math.random() < 0.5 ? "Feminino" : "Masculino";
+  const name = generateName(sex);
+  const surname = randomFrom(sampleMaleNames).slice(0, 4) + randomFrom(["a", "o", "es", "s"]);
+  const age = clamp(player.age + randomNumber(-3, 3), 16, 85);
+  const relation = kind === "romance"
+    ? (sex === "Feminino" ? "Namorada" : "Namorado")
+    : "Amigo/a";
+
+  const person = createFamilyMember({
+    name,
+    surname,
+    relation,
+    age,
+    sex,
+    maritalStatus: kind === "romance" ? "Em relacionamento" : "Solteiro/a",
+    relationship: randomNumber(60, 82)
+  });
+
+  game.family.push(person);
+  player.happiness = clamp(player.happiness + 4);
+  addEvent(`Conheceste ${name} (${relation})! 👋`, "positive");
+  showToast(`Conheceste ${name}!`);
+  saveGame();
+  renderGame();
+}
+
+function proposeMarriage(memberId) {
+  const member = game.family.find(f => f.id === memberId);
+  const player = game.player;
+  if (!member || !member.alive) return;
+  if (player.age < 18) { showToast("Precisas de ter 18 anos para casar."); return; }
+  if (member.relationship < 70) { showToast("A relação ainda precisa de ser mais forte (70%+)."); return; }
+
+  member.relation = member.sex === "Feminino" ? "Esposa" : (member.sex === "Masculino" ? "Marido" : "Cônjuge");
+  member.maritalStatus = "Casado/a";
+  player.happiness = clamp(player.happiness + 15);
+  addEvent(`Casaste-te com ${member.name} ${member.surname}! 💍`, "positive");
+  showToast(`Casamento com ${member.name}!`);
+  closeCustomModal();
+  saveGame();
+  renderGame();
+}
+
+function haveChild() {
+  const player = game.player;
+  if (player.age < 18) { showToast("Precisas de ter pelo menos 18 anos."); return; }
+  const childSex = Math.random() < 0.5 ? "Feminino" : "Masculino";
+  const childName = generateName(childSex);
+  const child = createFamilyMember({
+    name: childName,
+    surname: player.surname,
+    relation: childSex === "Feminino" ? "Filha" : "Filho",
+    age: 0,
+    sex: childSex,
+    maritalStatus: "",
+    relationship: 95
+  });
+  game.family.push(child);
+  player.happiness = clamp(player.happiness + 14);
+  addEvent(`Nasceu o teu/tua ${child.relation.toLowerCase()}, ${childName}! 👶`, "positive");
+  showToast(`Parabéns! Nasceu ${childName}!`);
+  saveGame();
+  renderGame();
+}
+
 function processFamilyYear() {
   if (!game || !Array.isArray(game.family)) return;
+  let childSupport = 0;
+
   game.family.forEach(member => {
     if (!member.alive) return;
     member.age += 1;
     member.relationship = clamp(member.relationship - randomNumber(0, 2));
+
+    if ((member.relation === "Filho" || member.relation === "Filha") && member.age < 18) {
+      childSupport += 1800;
+    }
 
     if (member.age >= member.maxAge && Math.random() < 0.25) {
       member.alive = false;
@@ -165,6 +288,11 @@ function processFamilyYear() {
       addEvent(`🕯️ O teu/tua ${member.relation.toLowerCase()}, ${member.name} ${member.surname}, faleceu aos ${member.age} anos.`, "negative");
     }
   });
+
+  if (childSupport > 0) {
+    game.player.bank -= childSupport;
+    addFinanceEvent(`Despesas anuais com filhos: ${money(childSupport)}.`);
+  }
 }
 
 function openFamilyInteractionModal(memberId) {
@@ -176,6 +304,9 @@ function openFamilyInteractionModal(memberId) {
     return;
   }
 
+  const isPartner = ["Namorado", "Namorada", "Esposa", "Marido", "Cônjuge"].includes(member.relation);
+  const canMarry = isPartner && !["Esposa", "Marido", "Cônjuge"].includes(member.relation);
+
   const modal = $("customModal");
   modal.innerHTML = `
     <div class="modal-card">
@@ -183,13 +314,14 @@ function openFamilyInteractionModal(memberId) {
       <p class="muted">${escapeHTML(member.relation)} · ${member.age} anos${member.maritalStatus ? " · " + escapeHTML(member.maritalStatus) : ""}</p>
       
       <div class="stat-bar" style="margin-top: 12px;">
-        <span>Relação Familiar: <strong>${member.relationship}%</strong></span>
+        <span>Relação: <strong>${member.relationship}%</strong></span>
         <div class="bar"><div class="fill" style="width: ${member.relationship}%; background-color: ${member.relationship > 40 ? 'var(--success-color)' : 'var(--danger-color)'};"></div></div>
       </div>
 
       <div class="modal-buttons">
         <button class="primary-btn full-width" onclick="interactFamily('${member.id}', 'talk')">💬 Conversar / Passar Tempo</button>
         <button class="secondary-btn full-width" onclick="interactFamily('${member.id}', 'gift')">🎁 Dar Presente</button>
+        ${canMarry ? `<button class="primary-btn full-width" onclick="proposeMarriage('${member.id}')">💍 Pedir em Casamento</button>` : ""}
         <button class="secondary-btn full-width" onclick="interactFamily('${member.id}', 'money')">💶 Pedir Dinheiro</button>
         <button class="danger-btn full-width" onclick="interactFamily('${member.id}', 'argue')">💢 Discutir</button>
       </div>
@@ -264,7 +396,8 @@ function renderFamilyTree() {
   if (!targetContainer) return;
 
   const parents = game.family.filter(f => f.relation === "Mãe" || f.relation === "Pai");
-  const others = game.family.filter(f => f.relation !== "Mãe" && f.relation !== "Pai");
+  const children = game.family.filter(f => f.relation === "Filho" || f.relation === "Filha");
+  const others = game.family.filter(f => !["Mãe", "Pai", "Filho", "Filha"].includes(f.relation));
 
   let html = `<div style="text-align: center; padding: 4px;">`;
   
@@ -284,8 +417,16 @@ function renderFamilyTree() {
     </div>
   `;
 
+  if (children.length > 0) {
+    html += `<div style="color:var(--accent-color); font-weight:bold;">│</div><div style="margin-top: 6px;"><small class="muted" style="display:block; margin-bottom: 4px;">Filhos/as</small>`;
+    children.forEach(c => {
+      html += `<span style="display:inline-block; background:var(--bg-color); border:1px solid var(--border-color); padding:4px 8px; border-radius:6px; margin:2px; font-size:0.85rem;">${c.alive ? '🟢' : '🕯️'} ${escapeHTML(c.name)} (${escapeHTML(c.relation)}, ${c.age}a)</span>`;
+    });
+    html += `</div>`;
+  }
+
   if (others.length > 0) {
-    html += `<div style="color:var(--accent-color); font-weight:bold;">│</div><div style="margin-top: 6px;"><small class="muted" style="display:block; margin-bottom: 4px;">Outros Familiares</small>`;
+    html += `<div style="margin-top: 8px;"><small class="muted" style="display:block; margin-bottom: 4px;">Relações & Outros</small>`;
     others.forEach(o => {
       html += `<span style="display:inline-block; background:var(--bg-color); border:1px solid var(--border-color); padding:4px 8px; border-radius:6px; margin:2px; font-size:0.85rem;">${o.alive ? '🟢' : '🕯️'} ${escapeHTML(o.name)} (${escapeHTML(o.relation)}, ${o.age}a)</span>`;
     });
@@ -302,7 +443,7 @@ function renderPeople() {
   container.innerHTML = "";
 
   if (game.family.length === 0) {
-    container.innerHTML = `<p class="muted">Sem familiares registados.</p>`;
+    container.innerHTML = `<p class="muted">Sem familiares ou contactos registados.</p>`;
   } else {
     game.family.forEach(f => {
       const aliveBadge = f.alive ? `${f.age} anos` : `🕯️ Falecido/a (${f.age} anos)`;
@@ -330,6 +471,71 @@ function renderPeople() {
   }
 
   renderFamilyTree();
+}
+
+function doLifestyleActivity(type) {
+  const player = game.player;
+  if (player.didLifestyleActionThisYear) {
+    showToast("Já fizeste uma atividade de estilo de vida este ano.");
+    return;
+  }
+
+  if (type === "gym") {
+    const cost = 60;
+    if (player.bank < cost) { showToast(`Precisas de ${money(cost)}.`); return; }
+    player.bank -= cost;
+    player.health = clamp(player.health + 8);
+    player.happiness = clamp(player.happiness + 4);
+    player.didLifestyleActionThisYear = true;
+    addEvent("Treinaste no ginásio e melhoraste a forma física! 💪", "positive");
+    showToast("Saúde +8%");
+  } else if (type === "vacation") {
+    const cost = 350;
+    if (player.bank < cost) { showToast(`Precisas de ${money(cost)}.`); return; }
+    player.bank -= cost;
+    player.happiness = clamp(player.happiness + 16);
+    player.health = clamp(player.health + 3);
+    player.didLifestyleActionThisYear = true;
+    addEvent("Tiraste férias e recarregaste baterias! 🏖️", "positive");
+    showToast("Felicidade +16%");
+  } else if (type === "lottery") {
+    const cost = 25;
+    if (player.bank < cost) { showToast(`Precisas de ${money(cost)}.`); return; }
+    player.bank -= cost;
+    player.didLifestyleActionThisYear = true;
+    if (Math.random() < 0.08) {
+      const prize = randomNumber(1500, 15000);
+      player.bank += prize;
+      player.happiness = clamp(player.happiness + 20);
+      addFinanceEvent(`Prémio de lotaria: +${money(prize)}.`);
+      addEvent(`🍀 Ganhas-te ${money(prize)} na lotaria!`, "positive");
+      showToast(`Prémio de ${money(prize)}!`);
+    } else {
+      addEvent("Jogaste na lotaria, mas não saiu desta vez. 🎟️", "neutral");
+      showToast("Sem prémio desta vez.");
+    }
+  } else if (type === "crime") {
+    if (player.age < 16) { showToast("Disponível a partir dos 16 anos."); return; }
+    player.didLifestyleActionThisYear = true;
+    if (Math.random() < 0.45) {
+      const loot = randomNumber(400, 2500);
+      player.bank += loot;
+      player.happiness = clamp(player.happiness + 6);
+      addEvent(`O golpe resultou e ganhaste ${money(loot)}! 🕶️`, "positive");
+      showToast(`Ganhaste ${money(loot)}!`);
+    } else {
+      const fine = randomNumber(300, 1200);
+      player.bank -= fine;
+      player.health = clamp(player.health - 10);
+      player.happiness = clamp(player.happiness - 12);
+      addFinanceEvent(`Multa/perda por atividade ilegal: -${money(fine)}.`);
+      addEvent(`Foste apanhado/a e perdeste ${money(fine)}! 🚨`, "negative");
+      showToast(`Apanhado/a! Perdeste ${money(fine)}.`);
+    }
+  }
+
+  saveGame();
+  renderGame();
 }
 
 function triggerRandomEvent() {
@@ -364,7 +570,6 @@ function triggerRandomEvent() {
   });
 }
 
-// Devolve a doença com o sintoma preenchido (também para saves antigos).
 function getIllnessInfo(ill) {
   if (!ill) return null;
   const known = commonIllnesses.find(i => i.name === ill.name);
@@ -395,8 +600,6 @@ function checkRandomIllness() {
   addEvent(`⚠️ Foi-te diagnosticado/a: ${name}. Sintomas: ${symptom}. Procura ${specialtyLabels[specialty]}.`, "negative");
 }
 
-// Saúde ao longo do ano: doenças ligeiras podem passar sozinhas, doenças desgastam,
-// e sem doença a saúde recupera (jovens) ou perde-se um pouco com a idade (60+).
 function processHealthYear() {
   const player = game.player;
 
@@ -470,7 +673,6 @@ function openHealthSpecialty(specialty) {
     mode = "urgency";
     label = `Ir às Urgências (${money(cost)})`;
   } else if (matches) {
-    // Só se paga o tratamento completo quando há mesmo uma doença desta especialidade.
     mode = "treat";
     cost = Math.max(base.cost, ill.cost || base.cost);
     label = `Iniciar Tratamento (${money(cost)})`;
@@ -526,7 +728,6 @@ function triggerDeath(cause = "Causas naturais") {
   const player = game.player;
   player.alive = false;
   player.causeOfDeath = cause;
-  // Um personagem falecido não deve ficar guardado (senão "Continuar Jogo" abria um jogo bloqueado).
   localStorage.removeItem(SAVE_KEY);
 
   $("gameScreen").classList.add("hidden");
@@ -558,6 +759,8 @@ function advanceYear() {
   game.year += 1;
   player.bank += player.salary;
   player.studiedThisYear = false;
+  player.workedHardThisYear = false;
+  player.didLifestyleActionThisYear = false;
 
   if (prevAge < 18 && player.age >= 18 && player.avatarCustom?.facialHair !== "none") {
     addEvent("Completaste 18 anos e a barba cresceu! 🧔", "positive");
@@ -566,6 +769,7 @@ function advanceYear() {
   processFamilyYear();
   processSchoolYear();
   processFurtherEducation();
+  processCareerYear();
   processHousingYear();
   processVehiclesYear();
   processBusinessesYear();
