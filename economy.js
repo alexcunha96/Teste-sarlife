@@ -202,7 +202,14 @@ function processHousingYear() {
       player.activeRental = null;
     }
   }
+
+  // Flutuação anual de mercado (-4% a +8%) no valor e rendas dos imóveis
+  const marketDelta = (Math.random() * 0.12) - 0.04;
+
   game.properties.forEach(p => {
+    p.value = Math.max(10000, Math.round(p.value * (1 + marketDelta)));
+    p.rentalIncomeAnnual = Math.max(600, Math.round(p.rentalIncomeAnnual * (1 + marketDelta * 0.6)));
+
     if (p.mortgageRemaining > 0) {
       player.bank -= p.annualPayment;
       p.mortgageRemaining = Math.max(0, p.mortgageRemaining - p.annualPayment);
@@ -244,7 +251,6 @@ function sellProperty(propId) {
     : `Tens a certeza de que queres vender "${prop.title}" por ${money(prop.value)}?`;
   if (!confirm(msg)) return;
 
-  // O crédito habitação é liquidado com o valor da venda (antes ficava dinheiro grátis).
   game.player.bank += net;
   if (mortgage > 0) {
     game.player.debt = Math.max(0, game.player.debt - mortgage);
@@ -350,7 +356,6 @@ function buyVehicle(type, idx) {
   renderGame();
 }
 
-// Custos anuais dos veículos (seguro, manutenção, imposto) — antes nunca eram cobrados.
 function processVehiclesYear() {
   if (!game || !game.vehicles.length) return;
   const total = game.vehicles.reduce((sum, v) => sum + (v.annualCost || 0), 0);
@@ -425,15 +430,49 @@ function confirmCreateBusiness() {
   const name = ($("bizNameInput")?.value || "").trim().slice(0, 30);
   const localAmount = Number($("bizInvestInput")?.value);
   if (!name) { showToast("Escreve o nome do negócio."); return; }
-  // O jogador escreve na moeda local; internamente guardamos em valor base.
   const inv = Math.round((localAmount || 0) / getPriceFactor());
   if (!inv || inv < 500) { showToast(`Investimento mínimo: ${money(500)}.`); return; }
   if (game.player.bank < inv) { showToast("Sem saldo suficiente."); return; }
 
   game.player.bank -= inv;
-  game.businesses.push({ id: createId("biz"), name, investment: inv, yearlyProfit: Math.round(inv * 0.25) });
+  game.businesses.push({
+    id: createId("biz"),
+    name,
+    investment: inv,
+    yearlyProfit: Math.round(inv * 0.22),
+    lastOutcome: "Estável"
+  });
   addEvent(`Criaste o negócio "${name}"! 🏢`, "positive");
   closeCustomModal();
+  saveGame();
+  renderGame();
+}
+
+function expandBusiness(bizId) {
+  const biz = game.businesses.find(b => b.id === bizId);
+  if (!biz) return;
+  const extra = Math.max(500, Math.round(biz.investment * 0.5));
+  if (game.player.bank < extra) { showToast(`Precisas de ${money(extra)} para expandir.`); return; }
+  if (!confirm(`Expandir "${biz.name}" investindo mais ${money(extra)}?`)) return;
+
+  game.player.bank -= extra;
+  biz.investment += extra;
+  biz.yearlyProfit = Math.round(biz.investment * 0.24);
+  addEvent(`Expandiste o negócio "${biz.name}"! 📈`, "positive");
+  saveGame();
+  renderGame();
+}
+
+function sellBusiness(bizId) {
+  const idx = game.businesses.findIndex(b => b.id === bizId);
+  if (idx === -1) return;
+  const biz = game.businesses[idx];
+  const value = Math.round(biz.investment * 1.15);
+  if (!confirm(`Vender o negócio "${biz.name}" por ${money(value)}?`)) return;
+
+  game.player.bank += value;
+  game.businesses.splice(idx, 1);
+  addEvent(`Vendeste o negócio "${biz.name}" por ${money(value)}! 💼`, "positive");
   saveGame();
   renderGame();
 }
@@ -447,11 +486,17 @@ function renderBusinesses() {
     return;
   }
   game.businesses.forEach(b => {
+    const val = Math.round(b.investment * 1.15);
     container.innerHTML += `
-      <div class="person-card">
+      <div class="person-card" style="flex-direction: column; align-items: stretch; gap: 8px;">
         <div class="person-info">
           <strong>${escapeHTML(b.name)}</strong>
-          <small>Investimento: ${money(b.investment)} · Lucro Anual: ${money(b.yearlyProfit)}</small>
+          <small style="display:block;">Investimento: ${money(b.investment)} · Lucro Base: ${money(b.yearlyProfit)}/ano</small>
+          <small style="display:block; color: var(--text-muted);">Último ano: ${escapeHTML(b.lastOutcome || "Estável")}</small>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="small-btn" style="flex:1;" onclick="expandBusiness('${b.id}')">📈 Expandir</button>
+          <button type="button" class="small-btn danger-btn" style="flex:1;" onclick="sellBusiness('${b.id}')">Vender (${money(val)})</button>
         </div>
       </div>
     `;
@@ -461,12 +506,23 @@ function renderBusinesses() {
 function processBusinessesYear() {
   if (!game || !game.businesses.length) return;
   game.businesses.forEach(b => {
-    game.player.bank += b.yearlyProfit;
-    addFinanceEvent(`O teu negócio "${b.name}" gerou ${money(b.yearlyProfit)} de lucro.`);
+    const roll = Math.random();
+    let mult = 1;
+    let label = "Ano estável";
+    if (roll < 0.2) {
+      mult = 0.35;
+      label = "Ano difícil (-65%)";
+    } else if (roll > 0.75) {
+      mult = 1.5;
+      label = "Ano excelente (+50%)";
+    }
+    const profit = Math.round(b.yearlyProfit * mult);
+    b.lastOutcome = label;
+    game.player.bank += profit;
+    addFinanceEvent(`Negócio "${b.name}" (${label}): +${money(profit)}.`);
   });
 }
 
-// Saldo negativo vira dívida pessoal; saldo positivo vai pagando essa dívida.
 function settleFinances() {
   const player = game.player;
   player.personalDebt ??= 0;
