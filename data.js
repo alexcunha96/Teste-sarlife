@@ -71,7 +71,6 @@ const APPEARANCE_CATEGORIES = [
   { key: "tattoo", label: "Acessório" }
 ];
 
-// Paletas usadas para que cada "#N" do seletor de avatar seja realmente diferente.
 const AVATAR_PRESET_PALETTE = {
   maleHair: ["short", "medium", "buzz", "ponytail"],
   femaleHair: ["long", "ponytail", "medium", "long"],
@@ -84,8 +83,6 @@ const AVATAR_PRESET_PALETTE = {
 
 const VALID_MOUTHS = ["default", "smile", "twinkle", "serious", "concerned", "sad", "eating", "grimace", "disbelief", "screamFace", "tongue", "vomit"];
 
-// Base de Países Mundiais com Moeda, Bancos e Cidades
-// priceFactor: quanto vale 1 € (valor base do jogo) na moeda local, para os preços fazerem sentido.
 const worldCountriesDatabase = {
   "Portugal": {
     currency: "EUR", symbol: "€", priceFactor: 1,
@@ -184,6 +181,17 @@ const availableBikes = [
   { name: "R1 Superbike", brand: "Yamah", cc: "1000cc", price: 17500, annualCost: 1100, reqLicense: "bikeA" }
 ];
 
+// Catálogo de empregos por nível mínimo de escolaridade (0: sem/básico inicial, 1: básico, 2: secundário, 3: licenciatura)
+const jobCatalog = [
+  { title: "Empregado/a de Loja", salary: 12000, minEdu: 0, nextTitle: "Supervisor/a de Loja", promoBonus: 3500 },
+  { title: "Estafeta / Logística", salary: 13500, minEdu: 0, nextTitle: "Coordenador/a de Frota", promoBonus: 4000 },
+  { title: "Assistente Administrativo/a", salary: 16500, minEdu: 1, nextTitle: "Assistente Sénior", promoBonus: 4500 },
+  { title: "Técnico/a de Atendimento", salary: 19000, minEdu: 2, nextTitle: "Especialista de Contas", promoBonus: 5500 },
+  { title: "Técnico/a Especializado/a", salary: 23000, minEdu: 2, nextTitle: "Chefe de Equipa", promoBonus: 6500 },
+  { title: "Analista Júnior", salary: 28000, minEdu: 3, nextTitle: "Analista Sénior", promoBonus: 8000 },
+  { title: "Consultor/a Profissional", salary: 34000, minEdu: 3, nextTitle: "Diretor/a de Área", promoBonus: 10000 }
+];
+
 const educationStages = [
   { name: "Creche", start: 0, end: 2, level: 0 },
   { name: "Jardim de infância", start: 3, end: 5, level: 0 },
@@ -208,8 +216,6 @@ const tombstoneQuotes = [
   "Uma lenda nunca morre, apenas descansa."
 ];
 
-// minAge: idade mínima para aparecer | weight(idade): peso relativo de sair sorteada
-// (doenças graves são raras nos jovens e ficam mais prováveis com a idade).
 const commonIllnesses = [
   { name: "Gripe Sazonal", severity: "Baixa", cost: 50, healthImpact: 4, specialty: "familyDoctor",
     symptom: "febre, tosse e dores no corpo", minAge: 3, weight: () => 40 },
