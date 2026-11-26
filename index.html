@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StarLife</title>
-  <link rel="stylesheet" href="style.css?v=20261126_1">
+  <link rel="stylesheet" href="style.css?v=20261126_3">
 </head>
 <body>
 
@@ -15,7 +15,6 @@
       <p>A tua vida. As tuas escolhas.</p>
       
       <div id="startForm">
-        <!-- Pré-visualização e Seleção do Avatar Completo -->
         <div class="panel" style="margin-top: 10px; background: rgba(0,0,0,0.22); text-align: center;">
           <h3>🎨 Escolher Avatar</h3>
           
@@ -31,7 +30,6 @@
             ✏️ Editar Avatar
           </button>
 
-          <!-- Género logo abaixo do avatar -->
           <div class="input-group" style="margin-top: 12px; text-align: left;">
             <label>Género</label>
             <select id="playerSex" onchange="onSetupGenderChange()">
@@ -50,31 +48,24 @@
           <input type="text" id="playerSurname" placeholder="Escreve o teu apelido" value="" required>
         </div>
 
-        <!-- Seletor Global de Países -->
         <div class="input-group">
           <label>País</label>
-          <select id="playerCountrySelect" onchange="onCountryChange()">
-            <!-- Preenchido dinamicamente via JS -->
-          </select>
+          <select id="playerCountrySelect" onchange="onCountryChange()"></select>
         </div>
         <div class="input-group" id="customCountryGroup" style="display:none;">
           <label>Outro País</label>
           <input type="text" id="playerCountryCustom" placeholder="Nome do país">
         </div>
 
-        <!-- Seletor de Cidades -->
         <div class="input-group">
           <label>Cidade</label>
-          <select id="playerCitySelect" onchange="onCitySelectChange()">
-            <!-- Preenchido dinamicamente -->
-          </select>
+          <select id="playerCitySelect" onchange="onCitySelectChange()"></select>
         </div>
         <div class="input-group" id="customCityGroup" style="display:none;">
           <label>Outra Cidade</label>
           <input type="text" id="playerCityCustom" placeholder="Nome da cidade">
         </div>
 
-        <!-- Secção para Adicionar Família Manualmente -->
         <div class="panel" style="margin-top: 15px; background: rgba(0,0,0,0.18);">
           <h3>👨‍👩‍👧 Adicionar Familiar (Opcional)</h3>
           <p class="muted" style="margin-bottom: 8px;">Se não adicionares nenhum pai ou mãe, serão criados automaticamente.</p>
@@ -136,7 +127,6 @@
     </header>
 
     <main class="game-body">
-      <!-- Tab: Início -->
       <section id="homeTab" class="tab-content">
         <div class="panel">
           <h3>Estatísticas</h3>
@@ -169,7 +159,6 @@
         </div>
       </section>
 
-      <!-- Tab: Património -->
       <section id="patrimonyTab" class="tab-content hidden">
         <div class="panel">
           <h2>💰 Finanças & Património</h2>
@@ -193,7 +182,6 @@
         </div>
       </section>
 
-      <!-- Tab: Carreira, Educação e Negócios -->
       <section id="careerTab" class="tab-content hidden">
         <div class="panel">
           <h2>💼 Carreira, Educação & Negócios</h2>
@@ -211,7 +199,7 @@
         <div id="subJob" class="sub-content">
           <div class="panel">
             <h3>💼 Oportunidades de Trabalho</h3>
-            <p class="muted">Procura emprego a partir dos 16 anos.</p>
+            <p class="muted">Procura emprego a partir dos 16 anos e melhora o desempenho para ser promovido/a.</p>
             <div id="jobOptions" class="button-list"></div>
           </div>
         </div>
@@ -227,7 +215,6 @@
         </div>
       </section>
 
-      <!-- Tab: Loja -->
       <section id="shopTab" class="tab-content hidden">
         <div class="sub-nav">
           <button class="sub-btn active" data-sub="shopHousing">🏡 Imobiliário</button>
@@ -242,10 +229,14 @@
         </div>
       </section>
 
-      <!-- Tab: Pessoas / Família -->
       <section id="peopleTab" class="tab-content hidden">
         <div class="panel">
-          <h2>👨‍👩‍👧 Família</h2>
+          <h2>👨‍👩‍👧 Família & Relações</h2>
+          <div class="button-list" style="margin-bottom: 12px;">
+            <button type="button" id="meetFriendBtn" class="secondary-btn full-width">👋 Conhecer Novo/a Amigo/a</button>
+            <button type="button" id="meetRomanceBtn" class="primary-btn full-width">💘 Conhecer Interesse Romântico (16+)</button>
+            <button type="button" id="haveChildBtn" class="secondary-btn full-width">👶 Ter Filho/a (18+)</button>
+          </div>
           <div id="peopleList" class="people-list"></div>
         </div>
         <div class="panel">
@@ -254,9 +245,18 @@
         </div>
       </section>
 
-      <!-- Tab: Atividades e Saúde -->
       <section id="activitiesTab" class="tab-content hidden">
-        <!-- Modo botão inicial -->
+        <div class="panel">
+          <h2>🏃 Estilo de Vida & Atividades</h2>
+          <p class="muted">Escolhe uma atividade anual para moldar a tua saúde, felicidade ou fortuna.</p>
+          <div class="button-list" style="margin-top: 10px;">
+            <button type="button" id="gymActivityBtn" class="secondary-btn full-width">💪 Ginásio & Treino (Saúde +8%)</button>
+            <button type="button" id="vacationActivityBtn" class="secondary-btn full-width">🏖️ Férias de Descanso (Felicidade +16%)</button>
+            <button type="button" id="lotteryActivityBtn" class="secondary-btn full-width">🎟️ Jogar na Lotaria (Risco/Prémio)</button>
+            <button type="button" id="crimeActivityBtn" class="danger-btn full-width">🕶️ Pequeno Golpe / Arriscar (Alto Risco)</button>
+          </div>
+        </div>
+
         <div id="medicalCenterButtonCard" class="panel">
           <button type="button" id="openMedicalCenterBtn" class="primary-btn medical-entry-btn">
             <div>
@@ -267,7 +267,6 @@
           </button>
         </div>
 
-        <!-- Conteúdo (só aparece depois de entrar no botão) -->
         <div id="medicalCenterContent" class="panel hidden">
           <div class="medical-header-row">
             <h2>🏥 Centro Médico & Especialidades</h2>
@@ -288,7 +287,6 @@
       </section>
     </main>
 
-    <!-- Navegação Inferior -->
     <nav id="bottomNav" class="bottom-nav">
       <button class="nav-btn active" data-tab="homeTab">🏠<span>Início</span></button>
       <button class="nav-btn" data-tab="patrimonyTab">💰<span>Património</span></button>
@@ -301,7 +299,6 @@
 
   <div id="customModal" class="modal-overlay hidden"></div>
 
-  <!-- Ecrã de Morte -->
   <div id="deathScreen" class="screen hidden" style="justify-content: center; align-items: center; padding: 20px;">
     <div class="panel" style="width: 100%; max-width: 440px; text-align: center; background: #142136; border: 2px solid #4a6b9c;">
       <h2 style="font-size: 2.5rem; margin-bottom: 5px;">⚰️</h2>
@@ -320,12 +317,12 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script src="data.js?v=20261126_2"></script>
-  <script src="utils.js?v=20261126_2"></script>
-  <script src="avatar.js?v=20261126_2"></script>
-  <script src="economy.js?v=20261126_2"></script>
-  <script src="life.js?v=20261126_2"></script>
-  <script src="setup.js?v=20261126_2"></script>
-  <script src="main.js?v=20261126_2"></script>
+  <script src="data.js?v=20261126_3"></script>
+  <script src="utils.js?v=20261126_3"></script>
+  <script src="avatar.js?v=20261126_3"></script>
+  <script src="economy.js?v=20261126_3"></script>
+  <script src="life.js?v=20261126_3"></script>
+  <script src="setup.js?v=20261126_3"></script>
+  <script src="main.js?v=20261126_3"></script>
 </body>
 </html>
